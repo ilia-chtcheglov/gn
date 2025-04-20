@@ -164,6 +164,32 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
     return 1;
 }
 
+void
+gn_start_wrkr (gn_serv_sock_list_t * const list);
+
+void
+gn_start_wrkr (gn_serv_sock_list_t * const list)
+{
+    printf ("Starting worker process.\n");
+    pid_t rfork = fork ();
+    switch (rfork)
+    {
+        case 0: // Child.
+        {
+            exit (1);
+        }
+        case -1:
+        {
+            fprintf (stderr, "Failed to fork master process. %s.\n", strerror (errno));
+            break;
+        }
+        default: // Parent.
+        {
+            (void)list;
+        }
+    }
+}
+
 int
 main (const int argc,
       __attribute__((unused)) const char * const * const argv)
@@ -187,6 +213,11 @@ main (const int argc,
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
     rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
+
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        gn_start_wrkr (&serv_sock_list);
+    }
 
     while (serv_sock_list.len > 0)
     {
