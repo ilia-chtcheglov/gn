@@ -8,15 +8,28 @@
 // Maximum number of command line arguments.
 #define GN_MAX_CMDL_ARGS 8
 
+typedef struct gn_serv_sock_t gn_serv_sock_t;
+
+struct gn_serv_sock_t
+{
+    int              fd;
+    uint32_t         pad0;
+    gn_serv_sock_t * prev;
+    gn_serv_sock_t * next;
+};
+
 __attribute__((warn_unused_result))
-int
+gn_serv_sock_t *
 gn_open_serv_sock (const char * const addr, const uint16_t port);
 
 __attribute__((warn_unused_result))
-int
+gn_serv_sock_t *
 gn_open_serv_sock (const char * const addr, const uint16_t port)
 {
-    if (port < 1) return -1;
+    if (port < 1) return NULL;
+
+    gn_serv_sock_t * serv_sock = (gn_serv_sock_t *)malloc (sizeof (gn_serv_sock_t));
+    if (serv_sock == NULL) return NULL;
 
     const int rsocket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (rsocket > -1)
@@ -38,7 +51,8 @@ gn_open_serv_sock (const char * const addr, const uint16_t port)
                 {
                     case 0:
                     {
-                        return rsocket;
+                        serv_sock->fd = rsocket;
+                        return serv_sock;
                     }
                     case -1:
                     {
@@ -70,7 +84,8 @@ gn_open_serv_sock (const char * const addr, const uint16_t port)
         fprintf (stderr, "Failed to create socket. %s.\n", strerror (errno));
     }
 
-    return -1;
+    free (serv_sock);
+    return NULL;
 }
 
 int
@@ -89,10 +104,18 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
-    int serv_sock = gn_open_serv_sock ("0.0.0.0", 8080);
-    close (serv_sock);
+    gn_serv_sock_t * serv_sock = gn_open_serv_sock ("0.0.0.0", 8080);
+    if (serv_sock != NULL)
+    {
+        close (serv_sock->fd);
+        free (serv_sock);
+    }
     serv_sock = gn_open_serv_sock ("127.0.0.1", 8081);
-    close (serv_sock);
+    if (serv_sock != NULL)
+    {
+        close (serv_sock->fd);
+        free (serv_sock);
+    }
 
     return EXIT_SUCCESS;
 }
