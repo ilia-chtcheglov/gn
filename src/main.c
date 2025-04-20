@@ -28,6 +28,39 @@ struct gn_serv_sock_list_t
     size_t           len;
 };
 
+gn_serv_sock_t *
+gn_serv_sock_list_pop (gn_serv_sock_list_t * const list);
+
+gn_serv_sock_t *
+gn_serv_sock_list_pop (gn_serv_sock_list_t * const list)
+{
+    switch (list->len)
+    {
+        case 0:
+        {
+            return NULL;
+        }
+        case 1:
+        {
+            gn_serv_sock_t * const ret = list->head;
+            list->head = list->tail = NULL;
+            list->len--;
+            return ret;
+        }
+        default:
+        {
+            gn_serv_sock_t * const ret = list->head;
+            list->head = list->head->next;
+
+            list->head->prev = list->tail;
+            list->tail->next = list->head;
+
+            list->len--;
+            return ret;
+        }
+    }
+}
+
 int
 gn_serv_sock_list_push_back (gn_serv_sock_list_t * const list, gn_serv_sock_t * const sock);
 
@@ -75,6 +108,7 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
     const int rsocket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (rsocket > -1)
     {
+        printf ("Opened FD %i.\n", rsocket);
         struct sockaddr_in sin;
         memset (&sin, 0, sizeof (sin));
 
@@ -154,7 +188,13 @@ main (const int argc,
     rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
 
-    // TODO: Empty @serv_sock_list and close sockets.
+    while (serv_sock_list.len > 0)
+    {
+        gn_serv_sock_t * serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
+        printf ("Closing FD %i.\n", serv_sock->fd);
+        close (serv_sock->fd);
+        free (serv_sock);
+    }
 
     return EXIT_SUCCESS;
 }
