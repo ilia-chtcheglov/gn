@@ -292,8 +292,18 @@ main (const int argc,
         }
     }
 
+    int ipc_sock = socket (AF_UNIX, SOCK_STREAM, 0);
+    if (ipc_sock < 0)
+    {
+        fprintf (stderr, "Failed to create IPC socket. %s.\n", strerror (errno));
+        return EXIT_FAILURE;
+    }
+
     if (!worker) gn_mstr_main ();
     else gn_wrkr_main ();
+
+    close (ipc_sock);
+    ipc_sock = -1;
 
     return EXIT_SUCCESS;
 }
