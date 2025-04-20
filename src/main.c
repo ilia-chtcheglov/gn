@@ -165,10 +165,10 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
 }
 
 void
-gn_start_wrkr (gn_serv_sock_list_t * const list);
+gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list);
 
 void
-gn_start_wrkr (gn_serv_sock_list_t * const list)
+gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list)
 {
     printf ("Starting worker process.\n");
     pid_t rfork = fork ();
@@ -176,6 +176,7 @@ gn_start_wrkr (gn_serv_sock_list_t * const list)
     {
         case 0: // Child.
         {
+            (void)path;
             exit (1);
         }
         case -1:
@@ -214,9 +215,29 @@ main (const int argc,
     rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
 
-    for (uint8_t i = 0; i < 2; i++)
+    char self_path[1024];
+    memset (self_path, 0, sizeof (self_path));
+
+    const ssize_t rreadlink = readlink ("/proc/self/exe", self_path, sizeof (self_path) - 1);
+    switch (rreadlink)
     {
-        gn_start_wrkr (&serv_sock_list);
+        case -1:
+        {
+            fprintf (stderr, "Failed to read path from \"/proc/self/exe\". %s.\n", strerror (errno));
+            break;
+        }
+        case 0:
+        {
+            break;
+        }
+        default:
+        {
+            printf ("Starting \"%s\".\n", self_path);
+            for (uint8_t i = 0; i < 2; i++)
+            {
+                gn_start_wrkr (self_path, &serv_sock_list);
+            }
+        }
     }
 
     while (serv_sock_list.len > 0)
