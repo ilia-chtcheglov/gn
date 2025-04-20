@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -176,7 +177,18 @@ gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list)
     {
         case 0: // Child.
         {
-            (void)path;
+            char ** argv = (char **)malloc (3 * sizeof (char *));
+            if (argv != NULL)
+            {
+                argv[0] = (char *)malloc (strlen (path) + 1);
+                if (argv[0] != NULL) strcpy (argv[0], path);
+                argv[1] = (char *)malloc (strlen ("--worker") + 1);
+                if (argv[1] != NULL) strcpy (argv[1], "--worker");
+                argv[2] = NULL;
+                execv (path, argv);
+                fprintf (stderr, "Failed to start worker process. %s.\n", strerror (errno));
+            }
+
             exit (1);
         }
         case -1:
@@ -193,7 +205,7 @@ gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list)
 
 int
 main (const int argc,
-      __attribute__((unused)) const char * const * const argv)
+      const char * const * const argv)
 {
     // Checking @argc.
     if (argc < 0)
@@ -207,45 +219,68 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
-    gn_serv_sock_list_t serv_sock_list;
-    memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
+    bool worker = false;
 
-    int rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "0.0.0.0", 8080);
-    if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
-    rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
-    if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
-
-    char self_path[1024];
-    memset (self_path, 0, sizeof (self_path));
-
-    const ssize_t rreadlink = readlink ("/proc/self/exe", self_path, sizeof (self_path) - 1);
-    switch (rreadlink)
+    // Parse command line arguments.
+    for (int argi = 1; argi < argc; argi++)
     {
-        case -1:
+        if (strcmp (argv[argi], "--worker") == 0)
         {
-            fprintf (stderr, "Failed to read path from \"/proc/self/exe\". %s.\n", strerror (errno));
-            break;
+            worker = true;
         }
-        case 0:
+        else
         {
-            break;
-        }
-        default:
-        {
-            printf ("Starting \"%s\".\n", self_path);
-            for (uint8_t i = 0; i < 2; i++)
-            {
-                gn_start_wrkr (self_path, &serv_sock_list);
-            }
+            fprintf (stderr, "Unsupported command line argument \"%s\".\n", argv[argi]);
+            return 1;
         }
     }
 
-    while (serv_sock_list.len > 0)
+    if (!worker)
     {
-        gn_serv_sock_t * serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
-        printf ("Closing FD %i.\n", serv_sock->fd);
-        close (serv_sock->fd);
-        free (serv_sock);
+        gn_serv_sock_list_t serv_sock_list;
+        memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
+
+        int rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "0.0.0.0", 8080);
+        if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
+        rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
+        if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
+
+        char self_path[1024];
+        memset (self_path, 0, sizeof (self_path));
+
+        const ssize_t rreadlink = readlink ("/proc/self/exe", self_path, sizeof (self_path) - 1);
+        switch (rreadlink)
+        {
+            case -1:
+            {
+                fprintf (stderr, "Failed to read path from \"/proc/self/exe\". %s.\n", strerror (errno));
+                break;
+            }
+            case 0:
+            {
+                break;
+            }
+            default:
+            {
+                printf ("Starting \"%s\".\n", self_path);
+                for (uint8_t i = 0; i < 2; i++)
+                {
+                    gn_start_wrkr (self_path, &serv_sock_list);
+                }
+            }
+        }
+
+        while (serv_sock_list.len > 0)
+        {
+            gn_serv_sock_t * serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
+            printf ("Closing FD %i.\n", serv_sock->fd);
+            close (serv_sock->fd);
+            free (serv_sock);
+        }
+    }
+    else
+    {
+        printf ("[%i] Worker started.\n", getpid ());
     }
 
     return EXIT_SUCCESS;
