@@ -168,10 +168,12 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
 }
 
 void
-gn_start_wrkr (const char * const path, int ipc_sock, gn_serv_sock_list_t * const list);
+gn_start_wrkr (const char * const path, int ipc_sock,
+               const char * const ipc_addr_str, gn_serv_sock_list_t * const list);
 
 void
-gn_start_wrkr (const char * const path, int ipc_sock, gn_serv_sock_list_t * const list)
+gn_start_wrkr (const char * const path, int ipc_sock,
+               const char * const ipc_addr_str, gn_serv_sock_list_t * const list)
 {
     printf ("Starting worker process.\n");
     pid_t rfork = fork ();
@@ -179,14 +181,17 @@ gn_start_wrkr (const char * const path, int ipc_sock, gn_serv_sock_list_t * cons
     {
         case 0: // Child.
         {
-            char ** argv = (char **)malloc (3 * sizeof (char *));
+            char ** argv = (char **)malloc (4 * sizeof (char *));
             if (argv != NULL)
             {
                 argv[0] = (char *)malloc (strlen (path) + 1);
                 if (argv[0] != NULL) strcpy (argv[0], path);
-                argv[1] = (char *)malloc (strlen ("--worker") + 1);
-                if (argv[1] != NULL) strcpy (argv[1], "--worker");
-                argv[2] = NULL;
+                argv[1] = (char *)malloc (strlen ("--ipc") + 1);
+                if (argv[1] != NULL) strcpy (argv[1], "--ipc");
+                argv[2] = (char *)malloc (strlen (ipc_addr_str) + 1);
+                if (argv[2] != NULL) strcpy (argv[2], ipc_addr_str);
+                argv[3] = NULL;
+
                 execv (path, argv);
                 fprintf (stderr, "Failed to start worker process. %s.\n", strerror (errno));
             }
@@ -320,7 +325,7 @@ gn_mstr_main (int ipc_sock)
             printf ("Starting \"%s\".\n", self_path);
             for (uint8_t i = 0; i < 2; i++)
             {
-                gn_start_wrkr (self_path, ipc_sock, &serv_sock_list);
+                gn_start_wrkr (self_path, ipc_sock, sun.sun_path, &serv_sock_list);
             }
         }
     }
@@ -335,11 +340,12 @@ gn_mstr_main (int ipc_sock)
 }
 
 void
-gn_wrkr_main (void);
+gn_wrkr_main (int ipc_sock);
 
 void
-gn_wrkr_main (void)
+gn_wrkr_main (int ipc_sock)
 {
+    (void)ipc_sock; // TODO: Remove.
     printf ("[%i] Worker started.\n", getpid ());
 }
 
@@ -364,7 +370,7 @@ main (const int argc,
     // Parse command line arguments.
     for (int argi = 1; argi < argc; argi++)
     {
-        if (strcmp (argv[argi], "--worker") == 0)
+        if (strcmp (argv[argi], "--ipc") == 0)
         {
             worker = true;
         }
@@ -383,7 +389,7 @@ main (const int argc,
     }
 
     if (!worker) gn_mstr_main (ipc_sock);
-    else gn_wrkr_main ();
+    else gn_wrkr_main (ipc_sock);
 
     close (ipc_sock);
     ipc_sock = -1;
