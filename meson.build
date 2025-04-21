@@ -1,7 +1,8 @@
 project('gn', 'c', version: '1.0.0')
 
 c_flags = [
-    '-Werror'
+    '-Werror',
+    '-D_GNU_SOURCE'
 ]
 
 all_files = [
