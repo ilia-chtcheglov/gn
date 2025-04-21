@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/un.h>
+#include <time.h>
 #include <unistd.h>
 
 // Maximum number of command line arguments.
@@ -209,6 +211,37 @@ gn_mstr_main (void);
 void
 gn_mstr_main (void)
 {
+    // Get current time to generate a path for the IPC socket.
+    struct timespec ts;
+    memset (&ts, 0, sizeof (ts));
+    const int rclock_gettime = clock_gettime (CLOCK_REALTIME, &ts); // 0 OR -1 ERRNO
+    switch (rclock_gettime)
+    {
+        case 0:
+        {
+            break;
+        }
+        case -1:
+        {
+            fprintf (stderr, "Failed to get current time. %s.\n", strerror (errno));
+            break;
+        }
+        default:
+        {
+
+        }
+    }
+
+    struct sockaddr_un sun;
+    memset (&sun, 0, sizeof (sun));
+
+    sun.sun_family = AF_UNIX;
+    // sun.sun_path is sun_path[108].
+
+    int rsnprintf = snprintf (sun.sun_path, sizeof (sun.sun_path), "Z%X%lX%lX",
+                              (unsigned int)getpid (), (long unsigned int)ts.tv_sec, (long unsigned int)ts.tv_nsec);
+    printf ("rsnprintf: %i, sun_path: \"%s\".\n", rsnprintf, sun.sun_path);
+
     gn_serv_sock_list_t serv_sock_list;
     memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
 
