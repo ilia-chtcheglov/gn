@@ -206,10 +206,10 @@ gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list)
 }
 
 void
-gn_mstr_main (void);
+gn_mstr_main (int ipc_sock);
 
 void
-gn_mstr_main (void)
+gn_mstr_main (int ipc_sock)
 {
     // Get current time to generate a path for the IPC socket.
     struct timespec ts;
@@ -242,6 +242,42 @@ gn_mstr_main (void)
                               (unsigned int)getpid (), (long unsigned int)ts.tv_sec, (long unsigned int)ts.tv_nsec);
     printf ("rsnprintf: %i, sun_path: \"%s\".\n", rsnprintf, sun.sun_path);
 
+    const int rbind = bind (ipc_sock, (struct sockaddr *)&sun, sizeof (sun));
+    switch (rbind)
+    {
+        case 0:
+        {
+            const int rlisten = listen (ipc_sock, 8);
+            switch (rlisten)
+            {
+                case 0:
+                {
+                    break;
+                }
+                case -1:
+                {
+                    fprintf (stderr, "Failed to listen on IPC socket. %s.\n", strerror (errno));
+                    return;
+                }
+                default:
+                {
+                    fprintf (stderr, "listen() returned unexpected value %i.\n", rlisten);
+                    return;
+                }
+            }
+            break;
+        }
+        case -1:
+        {
+            fprintf (stderr, "Failed to bind socket. %s.\n", strerror (errno));
+            return;
+        }
+        default:
+        {
+            fprintf (stderr, "bind() returned unexpected value %i.\n", rbind);
+            return;
+        }
+    }
     gn_serv_sock_list_t serv_sock_list;
     memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
 
@@ -332,7 +368,7 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
-    if (!worker) gn_mstr_main ();
+    if (!worker) gn_mstr_main (ipc_sock);
     else gn_wrkr_main ();
 
     close (ipc_sock);
