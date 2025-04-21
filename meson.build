@@ -5,9 +5,19 @@ c_flags = [
     '-D_GNU_SOURCE'
 ]
 
-all_files = [
-    'src/main.c'
-]
+comn_files = files(
+    'src/comn/main.c'
+)
+
+mstr_files = files(
+    'src/mstr/gn_mstr_main.c'
+)
+
+wrkr_files = files(
+    'src/wrkr/gn_wrkr_main.c'
+)
+
+all_files = comn_files + mstr_files + wrkr_files
 
 inc_dirs = include_directories('src')
 

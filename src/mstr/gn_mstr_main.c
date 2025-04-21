@@ -1,6 +1,5 @@
 #include <arpa/inet.h>
 #include <errno.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,9 +7,6 @@
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
-
-// Maximum number of command line arguments.
-#define GN_MAX_CMDL_ARGS 8
 
 typedef struct gn_serv_sock_t gn_serv_sock_t;
 
@@ -30,6 +26,7 @@ struct gn_serv_sock_list_t
     gn_serv_sock_t * tail;
     size_t           len;
 };
+
 
 gn_serv_sock_t *
 gn_serv_sock_list_pop (gn_serv_sock_list_t * const list);
@@ -337,101 +334,4 @@ gn_mstr_main (int ipc_sock)
         close (serv_sock->fd);
         free (serv_sock);
     }
-}
-
-void
-gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str);
-
-void
-gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str)
-{
-    (void)ipc_sock; // TODO: Remove.
-    printf ("[%i] Worker started. Received IPC address \"%s\".\n", getpid (), ipc_addr_str);
-
-    struct sockaddr_un sun;
-    memset (&sun, 0, sizeof (sun));
-
-    sun.sun_family = AF_UNIX;
-    strcpy (sun.sun_path, ipc_addr_str);
-
-    const int rconnect = connect (ipc_sock, (struct sockaddr *)&sun, sizeof (sun));
-    switch (rconnect)
-    {
-        case 0:
-        {
-            printf ("Connected to master process.\n");
-            break;
-        }
-        case -1:
-        {
-            fprintf (stderr, "Failed to connect to master process. %s.\n", strerror (errno));
-            return;
-        }
-        default:
-        {
-            fprintf (stderr, "connect() returned unexpected value %i.\n", rconnect);
-            return;
-        }
-    }
-}
-
-int
-main (const int argc,
-      const char * const * const argv)
-{
-    // Checking @argc.
-    if (argc < 0)
-    {
-        fprintf (stderr, "Negative number (%i) of command line arguments.\n", argc);
-        return EXIT_FAILURE;
-    }
-    if (argc > GN_MAX_CMDL_ARGS)
-    {
-        fprintf (stderr, "Number of command line arguments (%i) too high (maximum %i).\n", argc, GN_MAX_CMDL_ARGS);
-        return EXIT_FAILURE;
-    }
-
-    const char * ipc_addr_str = NULL;
-
-    // Parse command line arguments.
-    for (int argi = 1; argi < argc; argi++)
-    {
-        if (strcmp (argv[argi], "--ipc") == 0)
-        {
-            if (ipc_addr_str != NULL)
-            {
-                fprintf (stderr, "Command line argument \"--ipc\" already used.\n");
-                return 1;
-            }
-            if (++argi < argc)
-            {
-                ipc_addr_str = argv[argi];
-            }
-            else
-            {
-                fprintf (stderr, "Missing value after \"--ipc\" command line argument.\n");
-                return 1;
-            }
-        }
-        else
-        {
-            fprintf (stderr, "Unsupported command line argument \"%s\".\n", argv[argi]);
-            return 1;
-        }
-    }
-
-    int ipc_sock = socket (AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
-    if (ipc_sock < 0)
-    {
-        fprintf (stderr, "Failed to create IPC socket. %s.\n", strerror (errno));
-        return EXIT_FAILURE;
-    }
-
-    if (ipc_addr_str == NULL) gn_mstr_main (ipc_sock);
-    else gn_wrkr_main (ipc_sock, ipc_addr_str);
-
-    close (ipc_sock);
-    ipc_sock = -1;
-
-    return EXIT_SUCCESS;
 }
