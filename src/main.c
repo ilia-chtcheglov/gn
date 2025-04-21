@@ -108,7 +108,7 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
     gn_serv_sock_t * serv_sock = (gn_serv_sock_t *)malloc (sizeof (gn_serv_sock_t));
     if (serv_sock == NULL) return 1;
 
-    const int rsocket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    const int rsocket = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, IPPROTO_TCP);
     if (rsocket > -1)
     {
         printf ("Opened FD %i.\n", rsocket);
@@ -420,7 +420,7 @@ main (const int argc,
         }
     }
 
-    int ipc_sock = socket (AF_UNIX, SOCK_STREAM, 0);
+    int ipc_sock = socket (AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
     if (ipc_sock < 0)
     {
         fprintf (stderr, "Failed to create IPC socket. %s.\n", strerror (errno));
