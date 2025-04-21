@@ -340,13 +340,13 @@ gn_mstr_main (int ipc_sock)
 }
 
 void
-gn_wrkr_main (int ipc_sock);
+gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str);
 
 void
-gn_wrkr_main (int ipc_sock)
+gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str)
 {
     (void)ipc_sock; // TODO: Remove.
-    printf ("[%i] Worker started.\n", getpid ());
+    printf ("[%i] Worker started. Received IPC address \"%s\".\n", getpid (), ipc_addr_str);
 }
 
 int
@@ -365,14 +365,27 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
-    bool worker = false;
+    const char * ipc_addr_str = NULL;
 
     // Parse command line arguments.
     for (int argi = 1; argi < argc; argi++)
     {
         if (strcmp (argv[argi], "--ipc") == 0)
         {
-            worker = true;
+            if (ipc_addr_str != NULL)
+            {
+                fprintf (stderr, "Command line argument \"--ipc\" already used.\n");
+                return 1;
+            }
+            if (++argi < argc)
+            {
+                ipc_addr_str = argv[argi];
+            }
+            else
+            {
+                fprintf (stderr, "Missing value after \"--ipc\" command line argument.\n");
+                return 1;
+            }
         }
         else
         {
@@ -388,8 +401,8 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
-    if (!worker) gn_mstr_main (ipc_sock);
-    else gn_wrkr_main (ipc_sock);
+    if (ipc_addr_str == NULL) gn_mstr_main (ipc_sock);
+    else gn_wrkr_main (ipc_sock, ipc_addr_str);
 
     close (ipc_sock);
     ipc_sock = -1;
