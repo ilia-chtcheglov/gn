@@ -168,10 +168,10 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
 }
 
 void
-gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list);
+gn_start_wrkr (const char * const path, int ipc_sock, gn_serv_sock_list_t * const list);
 
 void
-gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list)
+gn_start_wrkr (const char * const path, int ipc_sock, gn_serv_sock_list_t * const list)
 {
     printf ("Starting worker process.\n");
     pid_t rfork = fork ();
@@ -200,7 +200,21 @@ gn_start_wrkr (const char * const path, gn_serv_sock_list_t * const list)
         }
         default: // Parent.
         {
-            (void)list;
+            (void)list; // TODO: Remove.
+            const int raccept4 = accept4 (ipc_sock, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
+            if (raccept4 > -1)
+            {
+                printf ("IPC connection accepted.\n");
+                close (raccept4);
+            }
+            else if (raccept4 == -1)
+            {
+                fprintf (stderr, "Failed to accept IPC connection. %s.\n", strerror (errno));
+            }
+            else
+            {
+                fprintf (stderr, "accept4() returned unexpected value %i.\n", raccept4);
+            }
         }
     }
 }
@@ -306,7 +320,7 @@ gn_mstr_main (int ipc_sock)
             printf ("Starting \"%s\".\n", self_path);
             for (uint8_t i = 0; i < 2; i++)
             {
-                gn_start_wrkr (self_path, &serv_sock_list);
+                gn_start_wrkr (self_path, ipc_sock, &serv_sock_list);
             }
         }
     }
