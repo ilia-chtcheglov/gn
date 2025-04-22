@@ -13,7 +13,8 @@ void
 gn_mstr_main (int ipc_sock);
 
 void
-gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str);
+gn_wrkr_main (int ipc_sock,
+              const char * const ipc_addr_str);
 
 int
 main (const int argc,
@@ -60,6 +61,11 @@ main (const int argc,
         }
     }
 
+    /*
+     * Open a Unix IPC socket. It will be used by:
+     * - The master process to control worker processes.
+     * - Worker processes to receive commands, send statistics to the master, etc.
+     */
     int ipc_sock = socket (AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
     if (ipc_sock < 0)
     {
@@ -70,6 +76,7 @@ main (const int argc,
     if (ipc_addr_str == NULL) gn_mstr_main (ipc_sock);
     else gn_wrkr_main (ipc_sock, ipc_addr_str);
 
+    // Close the IPC socket.
     close (ipc_sock);
     ipc_sock = -1;
 
