@@ -14,7 +14,8 @@ typedef struct gn_serv_sock_t gn_serv_sock_t;
 struct gn_serv_sock_t
 {
     int              fd;
-    uint32_t         pad0;
+    char *           addr;
+    uint16_t         port;
     gn_serv_sock_t * prev;
     gn_serv_sock_t * next;
 };
@@ -106,6 +107,13 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
     gn_serv_sock_t * serv_sock = (gn_serv_sock_t *)malloc (sizeof (gn_serv_sock_t));
     if (serv_sock == NULL) return 1;
 
+    serv_sock->addr = (char *)malloc (strlen (addr) + 1);
+    if (serv_sock->addr == NULL)
+    {
+        free (serv_sock);
+        return 1;
+    }
+
     const int rsocket = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, IPPROTO_TCP);
     if (rsocket > -1)
     {
@@ -128,6 +136,9 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
                     case 0:
                     {
                         serv_sock->fd = rsocket;
+                        strcpy (serv_sock->addr, addr);
+                        serv_sock->port = port;
+
                         gn_serv_sock_list_push_back (list, serv_sock);
                         return 0;
                     }
@@ -161,8 +172,57 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
         fprintf (stderr, "Failed to create socket. %s.\n", strerror (errno));
     }
 
+    free (serv_sock->addr);
     free (serv_sock);
     return 1;
+}
+
+void
+gn_send_serv_sock (const int ipc_sock, const gn_serv_sock_t * const serv_sock);
+
+void
+gn_send_serv_sock (const int ipc_sock, const gn_serv_sock_t * const serv_sock)
+{
+    char buf[1024];
+    memset (buf, 0, sizeof (buf));
+    snprintf (buf, sizeof (buf), "%s@%i\n", serv_sock->addr, serv_sock->port);
+
+    struct iovec io_vec;
+    memset (&io_vec, 0, sizeof (io_vec));
+    io_vec.iov_base = buf;
+    io_vec.iov_len = sizeof (buf);
+
+    struct msghdr msg_hdr;
+    memset (&msg_hdr, 0, sizeof (msg_hdr));
+    msg_hdr.msg_iov = &io_vec;
+    msg_hdr.msg_iovlen = 1;
+
+    char control[CMSG_SPACE (sizeof (int))];
+    memset (control, 0, sizeof (control));
+    msg_hdr.msg_control = control;
+    msg_hdr.msg_controllen = sizeof (control);
+
+    struct cmsghdr * cmsg_hdr = CMSG_FIRSTHDR (&msg_hdr);
+    cmsg_hdr->cmsg_level = SOL_SOCKET;
+    cmsg_hdr->cmsg_type = SCM_RIGHTS;
+    cmsg_hdr->cmsg_len = CMSG_LEN (sizeof (int));
+    memcpy (CMSG_DATA (cmsg_hdr), &serv_sock->fd, sizeof (int));
+
+    const ssize_t rsendmsg = sendmsg (ipc_sock, &msg_hdr, MSG_NOSIGNAL);
+    if (rsendmsg == -1)
+    {
+        fprintf (stderr, "Failed to send server socket to worker process. %s.\n", strerror (errno));
+    }
+    else if ((size_t)rsendmsg == strlen (buf))
+    {
+
+    }
+    else
+    {
+        const size_t sent = (size_t)rsendmsg;
+        fprintf (stderr, "Failed to send server socket to worker process. Sent %lu/%lu bytes.\n", sent, strlen (buf));
+    }
+
 }
 
 void
@@ -174,11 +234,13 @@ gn_start_wrkr (const char * const path, int ipc_sock,
                const char * const ipc_addr_str, gn_serv_sock_list_t * const list)
 {
     printf ("Starting worker process.\n");
+    // Fork the master process to start a worker process.
     pid_t rfork = fork ();
     switch (rfork)
     {
         case 0: // Child.
         {
+            // Start a worker process.
             char ** argv = (char **)malloc (4 * sizeof (char *));
             if (argv != NULL)
             {
@@ -204,6 +266,7 @@ gn_start_wrkr (const char * const path, int ipc_sock,
         default: // Parent.
         {
             (void)list; // TODO: Remove.
+            // Wait for a connection from the worker process we just started.
             struct pollfd pfd = {
                 .fd = ipc_sock,
                 .events = POLLIN,
@@ -215,11 +278,18 @@ gn_start_wrkr (const char * const path, int ipc_sock,
             {
                 case 1:
                 {
+                    // Accept the connection from the worker process.
                     const int raccept4 = accept4 (ipc_sock, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
                     if (raccept4 > -1)
                     {
-                        printf ("IPC connection accepted.\n");
-                        close (raccept4);
+                        // Send configuration, server sockets, etc. to the worker process.
+                        gn_serv_sock_t * serv_sock = list->head;
+                        for (size_t i = 0; i < list->len; serv_sock = serv_sock->next, i++)
+                        {
+                            gn_send_serv_sock (raccept4, serv_sock);
+                        }
+
+                        close (raccept4); // TODO: Don't close IPC socket if no errors occured.
                     }
                     else if (raccept4 == -1)
                     {
@@ -332,6 +402,12 @@ gn_mstr_main (int ipc_sock)
     rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
 
+    gn_serv_sock_t * serv_sock = serv_sock_list.head;
+    for (size_t i = 0; i < serv_sock_list.len; serv_sock = serv_sock->next, i++)
+    {
+        printf ("Server socket .fd: %i, .addr: [%s], .port: %i.\n", serv_sock->fd, serv_sock->addr, serv_sock->port);
+    }
+
     char self_path[1024];
     memset (self_path, 0, sizeof (self_path));
 
@@ -359,9 +435,10 @@ gn_mstr_main (int ipc_sock)
 
     while (serv_sock_list.len > 0)
     {
-        gn_serv_sock_t * serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
+        serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
         printf ("Closing FD %i.\n", serv_sock->fd);
         close (serv_sock->fd);
+        free (serv_sock->addr);
         free (serv_sock);
     }
 }
