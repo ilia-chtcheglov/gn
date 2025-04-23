@@ -181,7 +181,7 @@ gn_send_serv_sock (const int ipc_sock, const gn_serv_sock_t * const serv_sock)
     struct iovec io_vec;
     memset (&io_vec, 0, sizeof (io_vec));
     io_vec.iov_base = buf;
-    io_vec.iov_len = sizeof (buf);
+    io_vec.iov_len = strlen (buf);
 
     struct msghdr msg_hdr;
     memset (&msg_hdr, 0, sizeof (msg_hdr));
@@ -204,7 +204,7 @@ gn_send_serv_sock (const int ipc_sock, const gn_serv_sock_t * const serv_sock)
     {
         fprintf (stderr, "Failed to send server socket to worker process. %s.\n", strerror (errno));
     }
-    else if ((size_t)rsendmsg == sizeof (buf))
+    else if ((size_t)rsendmsg == strlen (buf))
     {
 
     }
