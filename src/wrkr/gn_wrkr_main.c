@@ -1,8 +1,33 @@
 #include <arpa/inet.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/un.h>
 #include <unistd.h>
+
+#include <gn_serv_sock_t.h>
+
+int
+gn_recv_serv_sock (const int ipc_sock);
+
+int
+gn_recv_serv_sock (const int ipc_sock)
+{
+    (void)ipc_sock;
+    printf ("In gn_recv_serv_sock()\n");
+    // Allocate gn_serv_sock_t structure to store socket, IP address and port of server socket.
+    gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)malloc (sizeof (gn_serv_sock_t));
+    if (serv_sock == NULL)
+    {
+        fprintf (stderr, "Failed to allocate structure to store server socket data.\n");
+        return EXIT_FAILURE;
+    }
+    memset (serv_sock, 0, sizeof (gn_serv_sock_t));
+
+    free (serv_sock);
+    return EXIT_FAILURE;
+}
 
 void
 gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str);
@@ -25,6 +50,11 @@ gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str)
         case 0:
         {
             printf ("Connected to master process.\n");
+
+            while (gn_recv_serv_sock (ipc_sock) == EXIT_SUCCESS);
+
+            while (true) sleep (1);
+
             break;
         }
         case -1:
