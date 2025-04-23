@@ -9,16 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef struct gn_serv_sock_t gn_serv_sock_t;
-
-struct gn_serv_sock_t
-{
-    int              fd;
-    char *           addr;
-    uint16_t         port;
-    gn_serv_sock_t * prev;
-    gn_serv_sock_t * next;
-};
+#include <gn_serv_sock_t.h>
 
 typedef struct gn_serv_sock_list_t gn_serv_sock_list_t;
 
@@ -213,7 +204,7 @@ gn_send_serv_sock (const int ipc_sock, const gn_serv_sock_t * const serv_sock)
     {
         fprintf (stderr, "Failed to send server socket to worker process. %s.\n", strerror (errno));
     }
-    else if ((size_t)rsendmsg == strlen (buf))
+    else if ((size_t)rsendmsg == sizeof (buf))
     {
 
     }

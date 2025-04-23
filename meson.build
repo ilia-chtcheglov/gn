@@ -20,7 +20,7 @@ wrkr_files = files(
 
 all_files = comn_files + mstr_files + wrkr_files
 
-inc_dirs = include_directories('src')
+inc_dirs = include_directories('src/comn/include')
 
 executable('gn', all_files,
     include_directories: inc_dirs,
