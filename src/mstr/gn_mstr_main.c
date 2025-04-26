@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <poll.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -385,20 +386,25 @@ gn_mstr_main (int ipc_sock)
             return;
         }
     }
+
+    // List of server sockets.
     gn_serv_sock_list_t serv_sock_list;
     memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
 
+    // Open server sockets.
     int rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "0.0.0.0", 8080);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
     rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
 
+    // Test code.
     gn_serv_sock_t * serv_sock = serv_sock_list.head;
     for (size_t i = 0; i < serv_sock_list.len; serv_sock = serv_sock->next, i++)
     {
         printf ("Server socket .fd: %i, .addr: [%s], .port: %i.\n", serv_sock->fd, serv_sock->addr, serv_sock->port);
     }
 
+    // Detect the absolute path of the program.
     char self_path[1024];
     memset (self_path, 0, sizeof (self_path));
 
@@ -416,7 +422,7 @@ gn_mstr_main (int ipc_sock)
         }
         default:
         {
-            printf ("Starting \"%s\".\n", self_path);
+            // Start worker processes.
             for (uint8_t i = 0; i < 2; i++)
             {
                 gn_start_wrkr (self_path, ipc_sock, sun.sun_path, &serv_sock_list);
@@ -424,6 +430,13 @@ gn_mstr_main (int ipc_sock)
         }
     }
 
+    // Main loop.
+    while (true)
+    {
+        sleep (1);
+    }
+
+    // Close server sockets.
     while (serv_sock_list.len > 0)
     {
         serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
