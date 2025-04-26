@@ -109,15 +109,25 @@ gn_recv_serv_sock (const int ipc_sock)
                 // Skip the address/port delimiter.
                 buf_i++;
                 // Extract the server port.
-                char port[6];
-                memset (port, 0, sizeof (port));
+                char port_buf[6];
+                memset (port_buf, 0, sizeof (port_buf));
 
-                uint8_t port_i = 0;
-                for (; port_i < 5 && buf[buf_i] != '\n' && buf[buf_i] != '\0'; buf_i++, port_i++)
+                uint8_t port_buf_i = 0;
+                for (; port_buf_i < 5 && buf[buf_i] != '\n' && buf[buf_i] != '\0'; buf_i++, port_buf_i++)
                 {
-                    port[port_i] = buf[buf_i];
+                    port_buf[port_buf_i] = buf[buf_i];
                 }
-                printf ("Extracted port (%lu) \"%s\"\n", strlen (port), port);
+                printf ("Extracted port (%lu) \"%s\"\n", strlen (port_buf), port_buf);
+
+                const int32_t port = atoi (port_buf);
+                if (port < 1 || port > 65535)
+                {
+                    fprintf (stderr, "Received invalid port number %i.\n", port);
+                    break;
+                }
+
+                serv_sock->port = (uint16_t)port;
+                printf ("Converted port: %i.\n", port);
 
                 return EXIT_SUCCESS;
             }
