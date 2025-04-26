@@ -84,6 +84,15 @@ gn_recv_serv_sock (const int ipc_sock)
                 memcpy (&serv_sock->fd, CMSG_DATA (cmsg_hdr), sizeof (int));
                 printf ("Received FD %i for \"%s\"\n", serv_sock->fd, buf);
 
+                // Find IP address delimiter.
+                size_t buf_i = 0; // Length of IP address string.
+                for (; buf[buf_i] != '@' && buf[buf_i] != '\0'; buf_i++) ;
+                if (buf[buf_i] != '@')
+                {
+                    fprintf (stderr, "IP address delimiter not found.\n");
+                    break;
+                }
+
                 return EXIT_SUCCESS;
             }
             break;
