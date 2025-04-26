@@ -36,7 +36,33 @@ gn_recv_serv_sock (const int ipc_sock)
     {
         case 1:
         {
-            printf ("OK\n");
+            char buf[1024];
+            memset (buf, 0, sizeof (buf));
+
+            struct iovec io_vec;
+            memset (&io_vec, 0, sizeof (io_vec));
+            io_vec.iov_base = buf;
+            io_vec.iov_len = sizeof (buf);
+
+            struct msghdr msg_hdr;
+            memset (&msg_hdr, 0, sizeof (msg_hdr));
+            msg_hdr.msg_iov = &io_vec;
+            msg_hdr.msg_iovlen = 1;
+
+            char control[CMSG_SPACE (sizeof (int))];
+            msg_hdr.msg_control = control;
+            msg_hdr.msg_controllen = sizeof (control);
+
+            const ssize_t rrecvmsg = recvmsg (ipc_sock, &msg_hdr, MSG_NOSIGNAL);
+            if (rrecvmsg == -1)
+            {
+                fprintf (stderr, "Failed to receive server socket data. %s.\n", strerror (errno));
+            }
+            else
+            {
+                printf ("Received %lu bytes \"%s\".\n", (size_t)rrecvmsg, buf);
+                return EXIT_SUCCESS;
+            }
             break;
         }
         case 0:
