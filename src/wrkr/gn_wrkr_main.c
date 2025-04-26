@@ -93,6 +93,19 @@ gn_recv_serv_sock (const int ipc_sock)
                     break;
                 }
 
+                // Allocate buffer to store the extracted IP address.
+                serv_sock->addr = (char *)malloc (buf_i + 1);
+                if (serv_sock->addr == NULL)
+                {
+                    fprintf (stderr, "Failed to allocate buffer for server IP address.");
+                    break;
+                }
+
+                // Copy IP address from @buf.
+                memcpy (serv_sock->addr, buf, buf_i);
+                serv_sock->addr[buf_i] = '\0';
+                printf ("Extracted address (%lu) \"%s\"\n", buf_i, serv_sock->addr);
+
                 return EXIT_SUCCESS;
             }
             break;
@@ -114,6 +127,7 @@ gn_recv_serv_sock (const int ipc_sock)
     }
 
     close (serv_sock->fd);
+    free (serv_sock->addr);
     free (serv_sock);
 
     return EXIT_FAILURE;
