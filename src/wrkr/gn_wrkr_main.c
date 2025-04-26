@@ -61,6 +61,25 @@ gn_recv_serv_sock (const int ipc_sock)
             else
             {
                 printf ("Received %lu bytes \"%s\".\n", (size_t)rrecvmsg, buf);
+
+                // Check structure before using it.
+                const struct cmsghdr * const cmsg_hdr = CMSG_FIRSTHDR (&msg_hdr);
+                if (cmsg_hdr == NULL)
+                {
+                    fprintf (stderr, "cmsg_hdr is NULL.\n");
+                    break;
+                }
+                if (cmsg_hdr->cmsg_level != SOL_SOCKET)
+                {
+                    fprintf (stderr, "cmsg_level is %i instead of SOL_SOCKET.", cmsg_hdr->cmsg_level);
+                    break;
+                }
+                if (cmsg_hdr->cmsg_type != SCM_RIGHTS)
+                {
+                    fprintf (stderr, "cmsg_type is %i instead of SCM_RIGHTS.", cmsg_hdr->cmsg_type);
+                    break;
+                }
+
                 return EXIT_SUCCESS;
             }
             break;
@@ -107,7 +126,7 @@ gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str)
         {
             printf ("Connected to master process.\n");
 
-            while (gn_recv_serv_sock (ipc_sock) == EXIT_SUCCESS);
+            while (gn_recv_serv_sock (ipc_sock) == EXIT_SUCCESS) sleep (1);
 
             while (true) sleep (1);
 
