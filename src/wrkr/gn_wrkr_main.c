@@ -71,14 +71,18 @@ gn_recv_serv_sock (const int ipc_sock)
                 }
                 if (cmsg_hdr->cmsg_level != SOL_SOCKET)
                 {
-                    fprintf (stderr, "cmsg_level is %i instead of SOL_SOCKET.", cmsg_hdr->cmsg_level);
+                    fprintf (stderr, "cmsg_level is %i instead of SOL_SOCKET.\n", cmsg_hdr->cmsg_level);
                     break;
                 }
                 if (cmsg_hdr->cmsg_type != SCM_RIGHTS)
                 {
-                    fprintf (stderr, "cmsg_type is %i instead of SCM_RIGHTS.", cmsg_hdr->cmsg_type);
+                    fprintf (stderr, "cmsg_type is %i instead of SCM_RIGHTS.\n", cmsg_hdr->cmsg_type);
                     break;
                 }
+
+                // Extract server socket.
+                memcpy (&serv_sock->fd, CMSG_DATA (cmsg_hdr), sizeof (int));
+                printf ("Received FD %i for \"%s\"\n", serv_sock->fd, buf);
 
                 return EXIT_SUCCESS;
             }
@@ -100,7 +104,9 @@ gn_recv_serv_sock (const int ipc_sock)
         }
     }
 
+    close (serv_sock->fd);
     free (serv_sock);
+
     return EXIT_FAILURE;
 }
 
