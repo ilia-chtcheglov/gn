@@ -106,6 +106,19 @@ gn_recv_serv_sock (const int ipc_sock)
                 serv_sock->addr[buf_i] = '\0';
                 printf ("Extracted address (%lu) \"%s\"\n", buf_i, serv_sock->addr);
 
+                // Skip the address/port delimiter.
+                buf_i++;
+                // Extract the server port.
+                char port[6];
+                memset (port, 0, sizeof (port));
+
+                uint8_t port_i = 0;
+                for (; port_i < 5 && buf[buf_i] != '\n' && buf[buf_i] != '\0'; buf_i++, port_i++)
+                {
+                    port[port_i] = buf[buf_i];
+                }
+                printf ("Extracted port (%lu) \"%s\"\n", strlen (port), port);
+
                 return EXIT_SUCCESS;
             }
             break;
