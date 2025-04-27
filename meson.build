@@ -18,12 +18,16 @@ mstr_files = files(
 )
 
 wrkr_files = files(
+    'src/wrkr/gn_recv_serv_sock.c',
     'src/wrkr/gn_wrkr_main.c'
 )
 
 all_files = comn_files + mstr_files + wrkr_files
 
-inc_dirs = include_directories('src/comn/include')
+inc_dirs = include_directories(
+    'src/comn/include',
+    'src/wrkr/include'
+)
 
 executable('gn', all_files,
     include_directories: inc_dirs,
