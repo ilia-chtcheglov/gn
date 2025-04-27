@@ -20,8 +20,8 @@ gn_wrkr_main (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list,
               const char * const ipc_addr_str);
 
-gn_serv_sock_t *
-gn_serv_sock_list_pop (gn_serv_sock_list_t * const list);
+void
+gn_close_serv_socks (gn_serv_sock_list_t * const serv_sock_list);
 
 int
 main (const int argc,
@@ -96,14 +96,7 @@ main (const int argc,
     else gn_wrkr_main (ipc_sock, &serv_sock_list, ipc_addr_str);
 
     // Close server sockets.
-    while (serv_sock_list.len > 0)
-    {
-        gn_serv_sock_t * const serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
-        printf ("Closing FD %i.\n", serv_sock->fd);
-        close (serv_sock->fd);
-        free (serv_sock->addr);
-        free (serv_sock);
-    }
+    gn_close_serv_socks (&serv_sock_list);
 
     // Close the IPC socket.
     close (ipc_sock);
