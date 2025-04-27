@@ -8,8 +8,8 @@
 
 #include <gn_serv_sock_list_t.h>
 
-// Maximum number of command line arguments.
-#define GN_MAX_CMDL_ARGS 8
+#define GN_MIN_CMDL_ARGS 1 // Minimum number of command line arguments.
+#define GN_MAX_CMDL_ARGS 8 // Maximum number of command line arguments.
 
 void
 gn_mstr_main (int ipc_sock,
@@ -31,6 +31,11 @@ main (const int argc,
     if (argc < 0)
     {
         fprintf (stderr, "Negative number (%i) of command line arguments.\n", argc);
+        return EXIT_FAILURE;
+    }
+    if (argc < GN_MIN_CMDL_ARGS)
+    {
+        fprintf (stderr, "Number of command line arguments (%i) too low (minimum %i).\n", argc, GN_MIN_CMDL_ARGS);
         return EXIT_FAILURE;
     }
     if (argc > GN_MAX_CMDL_ARGS)
