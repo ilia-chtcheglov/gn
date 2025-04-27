@@ -44,6 +44,11 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
+    /*
+     * Contains the address of the Unix socket used for
+     * IPC between the master process and the worker processes.
+     * If this variable is not NULL the process will be a worker process.
+     */
     const char * ipc_addr_str = NULL;
 
     // Parse command line arguments.
@@ -54,22 +59,20 @@ main (const int argc,
             if (ipc_addr_str != NULL)
             {
                 fprintf (stderr, "Command line argument \"--ipc\" already used.\n");
-                return 1;
+                return EXIT_FAILURE;
             }
-            if (++argi < argc)
-            {
-                ipc_addr_str = argv[argi];
-            }
-            else
+            if (++argi >= argc)
             {
                 fprintf (stderr, "Missing value after \"--ipc\" command line argument.\n");
-                return 1;
+                return EXIT_FAILURE;
             }
+
+            ipc_addr_str = argv[argi];
         }
         else
         {
             fprintf (stderr, "Unsupported command line argument \"%s\".\n", argv[argi]);
-            return 1;
+            return EXIT_FAILURE;
         }
     }
 
