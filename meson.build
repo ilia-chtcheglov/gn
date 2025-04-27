@@ -7,7 +7,9 @@ c_flags = [
 ]
 
 comn_files = files(
-    'src/comn/main.c'
+    'src/comn/main.c',
+    'src/comn/gn_serv_sock_list_pop.c',
+    'src/comn/gn_serv_sock_list_push_back.c'
 )
 
 mstr_files = files(
