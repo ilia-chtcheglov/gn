@@ -1,6 +1,8 @@
 #ifndef GN_SERV_SOCK_T_H
 #define GN_SERV_SOCK_T_H
 
+#include <stdint.h>
+
 typedef struct gn_serv_sock_t gn_serv_sock_t;
 
 struct gn_serv_sock_t
