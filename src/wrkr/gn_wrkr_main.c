@@ -7,13 +7,16 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include <gn_serv_sock_t.h>
+#include <gn_serv_sock_list_t.h>
 
 int
-gn_recv_serv_sock (const int ipc_sock);
+gn_serv_sock_list_push_back (gn_serv_sock_list_t * const list, gn_serv_sock_t * const sock);
 
 int
-gn_recv_serv_sock (const int ipc_sock)
+gn_recv_serv_sock (const int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
+
+int
+gn_recv_serv_sock (const int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
     printf ("In gn_recv_serv_sock()\n");
     // Allocate gn_serv_sock_t structure to store socket, IP address and port of server socket.
@@ -129,6 +132,8 @@ gn_recv_serv_sock (const int ipc_sock)
                 serv_sock->port = (uint16_t)port;
                 printf ("Converted port: %i.\n", port);
 
+                gn_serv_sock_list_push_back (serv_sock_list, serv_sock);
+
                 return EXIT_SUCCESS;
             }
             break;
@@ -157,10 +162,10 @@ gn_recv_serv_sock (const int ipc_sock)
 }
 
 void
-gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str);
+gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str);
 
 void
-gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str)
+gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str)
 {
     (void)ipc_sock; // TODO: Remove.
     printf ("[%i] Worker started. Received IPC address \"%s\".\n", getpid (), ipc_addr_str);
@@ -178,7 +183,7 @@ gn_wrkr_main (int ipc_sock, const char * const ipc_addr_str)
         {
             printf ("Connected to master process.\n");
 
-            while (gn_recv_serv_sock (ipc_sock) == EXIT_SUCCESS) sleep (1);
+            while (gn_recv_serv_sock (ipc_sock, serv_sock_list) == EXIT_SUCCESS) sleep (1);
 
             while (true) sleep (1);
 

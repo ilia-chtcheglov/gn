@@ -10,81 +10,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <gn_serv_sock_t.h>
-
-typedef struct gn_serv_sock_list_t gn_serv_sock_list_t;
-
-struct gn_serv_sock_list_t
-{
-    gn_serv_sock_t * head;
-    gn_serv_sock_t * tail;
-    size_t           len;
-};
-
-
-gn_serv_sock_t *
-gn_serv_sock_list_pop (gn_serv_sock_list_t * const list);
-
-gn_serv_sock_t *
-gn_serv_sock_list_pop (gn_serv_sock_list_t * const list)
-{
-    switch (list->len)
-    {
-        case 0:
-        {
-            return NULL;
-        }
-        case 1:
-        {
-            gn_serv_sock_t * const ret = list->head;
-            list->head = list->tail = NULL;
-            list->len--;
-            return ret;
-        }
-        default:
-        {
-            gn_serv_sock_t * const ret = list->head;
-            list->head = list->head->next;
-
-            list->head->prev = list->tail;
-            list->tail->next = list->head;
-
-            list->len--;
-            return ret;
-        }
-    }
-}
+#include <gn_serv_sock_list_t.h>
 
 int
 gn_serv_sock_list_push_back (gn_serv_sock_list_t * const list, gn_serv_sock_t * const sock);
-
-int
-gn_serv_sock_list_push_back (gn_serv_sock_list_t * const list, gn_serv_sock_t * const sock)
-{
-    switch (list->len)
-    {
-        case 0:
-        {
-            list->head = list->tail = sock->prev = sock->next = sock;
-            break;
-        }
-        case SIZE_MAX:
-        {
-            return 1;
-        }
-        default:
-        {
-            list->tail->next = sock;
-            sock->prev = list->tail;
-            list->head->prev = sock;
-            sock->next = list->head;
-            list->tail = sock;
-        }
-    }
-
-    list->len++;
-    return 0;
-}
 
 __attribute__((warn_unused_result))
 int
@@ -314,10 +243,10 @@ gn_start_wrkr (const char * const path, int ipc_sock,
 }
 
 void
-gn_mstr_main (int ipc_sock);
+gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
 
 void
-gn_mstr_main (int ipc_sock)
+gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
     // Get current time to generate a path for the IPC socket.
     struct timespec ts;
@@ -387,19 +316,15 @@ gn_mstr_main (int ipc_sock)
         }
     }
 
-    // List of server sockets.
-    gn_serv_sock_list_t serv_sock_list;
-    memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
-
     // Open server sockets.
-    int rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "0.0.0.0", 8080);
+    int rgn_open_serv_sock = gn_open_serv_sock (serv_sock_list, "0.0.0.0", 8080);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
-    rgn_open_serv_sock = gn_open_serv_sock (&serv_sock_list, "127.0.0.1", 8081);
+    rgn_open_serv_sock = gn_open_serv_sock (serv_sock_list, "127.0.0.1", 8081);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
 
     // Test code.
-    gn_serv_sock_t * serv_sock = serv_sock_list.head;
-    for (size_t i = 0; i < serv_sock_list.len; serv_sock = serv_sock->next, i++)
+    gn_serv_sock_t * serv_sock = serv_sock_list->head;
+    for (size_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
     {
         printf ("Server socket .fd: %i, .addr: [%s], .port: %i.\n", serv_sock->fd, serv_sock->addr, serv_sock->port);
     }
@@ -425,7 +350,7 @@ gn_mstr_main (int ipc_sock)
             // Start worker processes.
             for (uint8_t i = 0; i < 2; i++)
             {
-                gn_start_wrkr (self_path, ipc_sock, sun.sun_path, &serv_sock_list);
+                gn_start_wrkr (self_path, ipc_sock, sun.sun_path, serv_sock_list);
             }
         }
     }
@@ -434,15 +359,5 @@ gn_mstr_main (int ipc_sock)
     while (true)
     {
         sleep (1);
-    }
-
-    // Close server sockets.
-    while (serv_sock_list.len > 0)
-    {
-        serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
-        printf ("Closing FD %i.\n", serv_sock->fd);
-        close (serv_sock->fd);
-        free (serv_sock->addr);
-        free (serv_sock);
     }
 }

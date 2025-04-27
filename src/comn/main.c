@@ -6,15 +6,22 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <gn_serv_sock_list_t.h>
+
 // Maximum number of command line arguments.
 #define GN_MAX_CMDL_ARGS 8
 
 void
-gn_mstr_main (int ipc_sock);
+gn_mstr_main (int ipc_sock,
+              gn_serv_sock_list_t * const serv_sock_list);
 
 void
 gn_wrkr_main (int ipc_sock,
+              gn_serv_sock_list_t * const serv_sock_list,
               const char * const ipc_addr_str);
+
+gn_serv_sock_t *
+gn_serv_sock_list_pop (gn_serv_sock_list_t * const list);
 
 int
 main (const int argc,
@@ -73,8 +80,22 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
-    if (ipc_addr_str == NULL) gn_mstr_main (ipc_sock);
-    else gn_wrkr_main (ipc_sock, ipc_addr_str);
+    // List of server sockets.
+    gn_serv_sock_list_t serv_sock_list;
+    memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
+
+    if (ipc_addr_str == NULL) gn_mstr_main (ipc_sock, &serv_sock_list);
+    else gn_wrkr_main (ipc_sock, &serv_sock_list, ipc_addr_str);
+
+    // Close server sockets.
+    while (serv_sock_list.len > 0)
+    {
+        gn_serv_sock_t * const serv_sock = gn_serv_sock_list_pop (&serv_sock_list);
+        printf ("Closing FD %i.\n", serv_sock->fd);
+        close (serv_sock->fd);
+        free (serv_sock->addr);
+        free (serv_sock);
+    }
 
     // Close the IPC socket.
     close (ipc_sock);
