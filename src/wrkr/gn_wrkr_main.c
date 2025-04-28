@@ -11,6 +11,7 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     sun.sun_family = AF_UNIX;
     strcpy (sun.sun_path, ipc_addr_str);
 
+    // Connect to the master process.
     const int rconnect = connect (ipc_sock, (struct sockaddr *)&sun, sizeof (sun));
     switch (rconnect)
     {
@@ -18,9 +19,30 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
         {
             printf ("Connected to master process.\n");
 
-            while (gn_recv_serv_sock (ipc_sock, serv_sock_list) == EXIT_SUCCESS) sleep (1);
+            // Receive server sockets data.
+            int rgn_recv_serv_sock = 0;
+            while (rgn_recv_serv_sock == 0)
+            {
+                rgn_recv_serv_sock = gn_recv_serv_sock (ipc_sock, serv_sock_list);
+            }
 
-            while (true) sleep (1);
+            if (rgn_recv_serv_sock == 1)
+            {
+                // Test code.
+                const gn_serv_sock_t * serv_sock = serv_sock_list->head;
+                for (uint16_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
+                {
+                    printf ("Received server socket .fd: %i, .addr: [%s], .port: %i.\n",
+                            serv_sock->fd, serv_sock->addr, serv_sock->port);
+                }
+
+                // Main loop.
+                while (true) sleep (1);
+            }
+            else
+            {
+                fprintf (stderr, "Error occured while receiving server socket data.\n");
+            }
 
             break;
         }
