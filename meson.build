@@ -14,7 +14,8 @@ comn_files = files(
 )
 
 mstr_files = files(
-    'src/mstr/gn_mstr_main.c'
+    'src/mstr/gn_mstr_main.c',
+    'src/mstr/gn_open_serv_sock.c'
 )
 
 wrkr_files = files(
@@ -26,6 +27,7 @@ all_files = comn_files + mstr_files + wrkr_files
 
 inc_dirs = include_directories(
     'src/comn/include',
+    'src/mstr/include',
     'src/wrkr/include'
 )
 
