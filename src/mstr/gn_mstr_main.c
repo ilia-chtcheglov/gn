@@ -83,6 +83,13 @@ gn_start_wrkr (const char * const path, int ipc_sock,
                             gn_send_serv_sock (raccept4, serv_sock);
                         }
 
+                        gn_serv_sock_t final_serv_sock = {
+                            .fd = 0,
+                            .addr = NULL,
+                            .port = 0
+                        };
+                        gn_send_serv_sock (raccept4, &final_serv_sock);
+
                         close (raccept4); // TODO: Don't close IPC socket if no errors occured.
                     }
                     else if (raccept4 == -1)

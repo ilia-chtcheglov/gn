@@ -93,32 +93,42 @@ gn_recv_serv_sock (const int ipc_sock, gn_serv_sock_list_t * const serv_sock_lis
                 // Copy IP address from @buf.
                 memcpy (serv_sock->addr, buf, buf_i);
                 serv_sock->addr[buf_i] = '\0';
-                printf ("Extracted address (%lu) \"%s\"\n", buf_i, serv_sock->addr);
-
-                // Skip the address/port delimiter.
-                buf_i++;
-                // Extract the server port.
-                char port_buf[6];
-                memset (port_buf, 0, sizeof (port_buf));
-
-                uint8_t port_buf_i = 0;
-                for (; port_buf_i < 5 && buf[buf_i] != '\n' && buf[buf_i] != '\0'; buf_i++, port_buf_i++)
+                if (strcmp (serv_sock->addr, "(null)") != 0)
                 {
-                    port_buf[port_buf_i] = buf[buf_i];
-                }
-                printf ("Extracted port (%lu) \"%s\"\n", strlen (port_buf), port_buf);
+                    printf ("Extracted address (%lu) \"%s\"\n", buf_i, serv_sock->addr);
 
-                const int32_t port = atoi (port_buf);
-                if (port < 1 || port > 65535)
+                    // Skip the address/port delimiter.
+                    buf_i++;
+                    // Extract the server port.
+                    char port_buf[6];
+                    memset (port_buf, 0, sizeof (port_buf));
+
+                    uint8_t port_buf_i = 0;
+                    for (; port_buf_i < 5 && buf[buf_i] != '\n' && buf[buf_i] != '\0'; buf_i++, port_buf_i++)
+                    {
+                        port_buf[port_buf_i] = buf[buf_i];
+                    }
+                    printf ("Extracted port (%lu) \"%s\"\n", strlen (port_buf), port_buf);
+
+                    const int32_t port = atoi (port_buf);
+                    if (port < 1 || port > 65535)
+                    {
+                        fprintf (stderr, "Received invalid port number %i.\n", port);
+                        break;
+                    }
+
+                    serv_sock->port = (uint16_t)port;
+                    printf ("Converted port: %i.\n", port);
+
+                    gn_serv_sock_list_push_back (serv_sock_list, serv_sock);
+                }
+                else
                 {
-                    fprintf (stderr, "Received invalid port number %i.\n", port);
-                    break;
+                    close (serv_sock->fd);
+                    free (serv_sock->addr);
+                    free (serv_sock);
+                    return 2;
                 }
-
-                serv_sock->port = (uint16_t)port;
-                printf ("Converted port: %i.\n", port);
-
-                gn_serv_sock_list_push_back (serv_sock_list, serv_sock);
 
                 return EXIT_SUCCESS;
             }
