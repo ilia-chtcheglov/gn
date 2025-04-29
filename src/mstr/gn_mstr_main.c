@@ -155,15 +155,31 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     sun.sun_family = AF_UNIX;
     // sun.sun_path is sun_path[108].
 
+    /*
+     * Generate an address for the IPC socket. The address is made of:
+     * - Current process ID in hexadecimal.
+     * - Time in seconds in hexadecimal.
+     * - Nanoseconds in hexadecimal.
+     * - The first byte will be replaced with '\0' to make the address an abstract one.
+     */
     int rsnprintf = snprintf (sun.sun_path, sizeof (sun.sun_path), "Z%X%lX%lX",
                               (unsigned int)getpid (), (long unsigned int)ts.tv_sec, (long unsigned int)ts.tv_nsec);
     printf ("rsnprintf: %i, sun_path: \"%s\".\n", rsnprintf, sun.sun_path);
+
+    /*
+     * Setting the first byte of .sun_path to '\0' will turn the socket address inside .sun_path
+     * into an abstract socket address. No files will be created on disk.
+     */
+    sun.sun_path[0] = '\0';
 
     const int rbind = bind (ipc_sock, (struct sockaddr *)&sun, sizeof (sun));
     switch (rbind)
     {
         case 0:
         {
+            // Set sun_path[0] back to some byte because some gn_* functions can't work if @sun_path starts with '\0'.
+            sun.sun_path[0] = 'Z';
+
             const int rlisten = listen (ipc_sock, 8);
             switch (rlisten)
             {
