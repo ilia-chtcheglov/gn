@@ -15,21 +15,23 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
         rgn_recv_serv_sock = gn_recv_serv_sock (ipc_sock, serv_sock_list);
     }
 
-    if (rgn_recv_serv_sock == 1)
-    {
-        // Test code.
-        const gn_serv_sock_t * serv_sock = serv_sock_list->head;
-        for (uint16_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
-        {
-            printf ("Received server socket .fd: %i, .addr: [%s], .port: %i.\n",
-                    serv_sock->fd, serv_sock->addr, serv_sock->port);
-        }
-
-        // Main loop.
-        while (true) sleep (1);
-    }
-    else
+    if (rgn_recv_serv_sock != 1)
     {
         fprintf (stderr, "Error occured while receiving server socket data.\n");
+        return;
+    }
+
+    // Test code.
+    const gn_serv_sock_t * serv_sock = serv_sock_list->head;
+    for (uint16_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
+    {
+        printf ("Received server socket .fd: %i, .addr: [%s], .port: %i.\n",
+                serv_sock->fd, serv_sock->addr, serv_sock->port);
+    }
+
+    // Main loop.
+    while (true)
+    {
+        sleep (1);
     }
 }
