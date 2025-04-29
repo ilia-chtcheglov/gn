@@ -1,10 +1,13 @@
 #ifndef GN_WRKR_MAIN_H
 #define GN_WRKR_MAIN_H
 
+#include <errno.h>
 #include <poll.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/epoll.h>
 #include <unistd.h>
 
 #include <gn_serv_sock_list_t.h>

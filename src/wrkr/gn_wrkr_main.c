@@ -8,6 +8,13 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     // Connect to the master process.
     if (gn_ipc_conn (ipc_sock, ipc_addr_str) != EXIT_SUCCESS) return;
 
+    int repoll_create1 = epoll_create1 (EPOLL_CLOEXEC);
+    if (repoll_create1 < 0)
+    {
+        fprintf (stderr, "Failed to create epoll instance. %s.\n", strerror (errno));
+        return;
+    }
+
     // Receive server sockets data.
     int rgn_recv_serv_sock = 0;
     while (rgn_recv_serv_sock == 0)
@@ -34,4 +41,6 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     {
         sleep (1);
     }
+
+    close (repoll_create1);
 }
