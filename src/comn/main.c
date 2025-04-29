@@ -44,6 +44,19 @@ main (const int argc,
                 return EXIT_FAILURE;
             }
 
+            const struct sockaddr_un sun = { 0 };
+            const size_t ipc_addr_str_len = strlen (argv[argi]);
+            if (ipc_addr_str_len < 1)
+            {
+                fprintf (stderr, "IPC address too short (minimum 1).\n");
+                return EXIT_FAILURE;
+            }
+            if (ipc_addr_str_len >= sizeof (sun.sun_path))
+            {
+                fprintf (stderr, "IPC address too long (maximum %lu).\n", sizeof (sun.sun_path) - 1);
+                return EXIT_FAILURE;
+            }
+
             ipc_addr_str = argv[argi];
         }
         else
