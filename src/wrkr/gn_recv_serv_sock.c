@@ -2,7 +2,7 @@
 
 __attribute__((warn_unused_result))
 int
-gn_recv_serv_sock (const int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
+gn_recv_serv_sock (const int ipc_sock, const int repoll_create1, gn_serv_sock_list_t * const serv_sock_list)
 {
     // Allocate structure to store socket, IP address and port of server socket.
     gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)malloc (sizeof (gn_serv_sock_t));
@@ -167,9 +167,22 @@ gn_recv_serv_sock (const int ipc_sock, gn_serv_sock_list_t * const serv_sock_lis
     serv_sock->port = (uint16_t)port;
     printf ("Converted port: %i.\n", port);
 
-    // Add server socket to the linked list.
-    gn_serv_sock_list_push_back (serv_sock_list, serv_sock);
-    return 0; // No errors, retry.
+    struct epoll_event epoll_evt;
+    memset (&epoll_evt, 0, sizeof (epoll_evt));
+    epoll_evt.events = EPOLLIN | EPOLLRDHUP;
+    epoll_evt.data.ptr = serv_sock;
+
+    const int repoll_ctl = epoll_ctl (repoll_create1, EPOLL_CTL_ADD, serv_sock->fd, &epoll_evt);
+    if (repoll_ctl == 0)
+    {
+        // Add server socket to the linked list.
+        gn_serv_sock_list_push_back (serv_sock_list, serv_sock);
+        return 0; // No errors, retry.
+    }
+    else
+    {
+        fprintf (stderr, "Failed to add server socket to epoll instance. %s.\n", strerror (errno));
+    }
 
     labl_exit:
     close (serv_sock->fd);
