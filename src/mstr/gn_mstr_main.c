@@ -19,6 +19,60 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
 void
 gn_send_serv_sock (const int ipc_sock, const gn_serv_sock_t * const serv_sock);
 
+__attribute__((warn_unused_result))
+int
+gn_ipc_acpt (const int ipc_sock);
+
+__attribute__((warn_unused_result))
+int
+gn_ipc_acpt (const int ipc_sock)
+{
+    // Wait for a connection from the worker process we just started.
+    struct pollfd pfd = {
+        .fd = ipc_sock,
+        .events = POLLIN,
+        .revents = 0
+    };
+
+    const int rpoll = poll (&pfd, 1, 3000);
+    switch (rpoll)
+    {
+        case 1:
+        {
+            // Accept the connection from the worker process.
+            const int raccept4 = accept4 (ipc_sock, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
+            if (raccept4 > -1) return raccept4;
+
+            if (raccept4 == -1)
+            {
+                fprintf (stderr, "Failed to accept IPC connection. %s.\n", strerror (errno));
+            }
+            else
+            {
+                fprintf (stderr, "accept4() returned unexpected value %i.\n", raccept4);
+            }
+
+            break;
+        }
+        case 0:
+        {
+            fprintf (stderr, "Timeout while waiting to accept IPC connection.\n");
+            break;
+        }
+        case -1:
+        {
+            fprintf (stderr, "Error while waiting to accept IPC connection. %s.\n", strerror (errno));
+            break;
+        }
+        default:
+        {
+            fprintf (stderr, "poll() returned unexpected value %i.\n", rpoll);
+        }
+    }
+
+    return -1;
+}
+
 void
 gn_start_wrkr (const char * const path, int ipc_sock,
                const char * const ipc_addr_str, gn_serv_sock_list_t * const list);
@@ -59,64 +113,24 @@ gn_start_wrkr (const char * const path, int ipc_sock,
         }
         default: // Parent.
         {
-            // Wait for a connection from the worker process we just started.
-            struct pollfd pfd = {
-                .fd = ipc_sock,
-                .events = POLLIN,
-                .revents = 0
-            };
+            const int raccept4 = gn_ipc_acpt (ipc_sock);
+            if (raccept4 < 0) return;
 
-            const int rpoll = poll (&pfd, 1, 3000);
-            switch (rpoll)
+            // Send configuration, server sockets, etc. to the worker process.
+            gn_serv_sock_t * serv_sock = list->head;
+            for (size_t i = 0; i < list->len; serv_sock = serv_sock->next, i++)
             {
-                case 1:
-                {
-                    // Accept the connection from the worker process.
-                    const int raccept4 = accept4 (ipc_sock, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
-                    if (raccept4 > -1)
-                    {
-                        // Send configuration, server sockets, etc. to the worker process.
-                        gn_serv_sock_t * serv_sock = list->head;
-                        for (size_t i = 0; i < list->len; serv_sock = serv_sock->next, i++)
-                        {
-                            gn_send_serv_sock (raccept4, serv_sock);
-                        }
-
-                        gn_serv_sock_t final_serv_sock = {
-                            .fd = 0,
-                            .addr = NULL,
-                            .port = 0
-                        };
-                        gn_send_serv_sock (raccept4, &final_serv_sock);
-
-                        close (raccept4); // TODO: Don't close IPC socket if no errors occured.
-                    }
-                    else if (raccept4 == -1)
-                    {
-                        fprintf (stderr, "Failed to accept IPC connection. %s.\n", strerror (errno));
-                    }
-                    else
-                    {
-                        fprintf (stderr, "accept4() returned unexpected value %i.\n", raccept4);
-                    }
-
-                    break;
-                }
-                case 0:
-                {
-                    fprintf (stderr, "Timeout while waiting to accept IPC connection.\n");
-                    break;
-                }
-                case -1:
-                {
-                    fprintf (stderr, "Error while waiting to accept IPC connection. %s.\n", strerror (errno));
-                    break;
-                }
-                default:
-                {
-                    fprintf (stderr, "poll() returned unexpected value %i.\n", rpoll);
-                }
+                gn_send_serv_sock (raccept4, serv_sock);
             }
+
+            gn_serv_sock_t final_serv_sock = {
+                .fd = 0,
+                .addr = NULL,
+                .port = 0
+            };
+            gn_send_serv_sock (raccept4, &final_serv_sock);
+
+            close (raccept4); // TODO: Don't close IPC socket if no errors occured.
         }
     }
 }
