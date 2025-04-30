@@ -14,6 +14,7 @@ comn_files = files(
 )
 
 mstr_files = files(
+    'src/mstr/gn_ipc_acpt.c',
     'src/mstr/gn_mstr_main.c',
     'src/mstr/gn_open_serv_sock.c',
     'src/mstr/gn_send_serv_sock.c'
