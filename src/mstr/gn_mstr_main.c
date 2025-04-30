@@ -59,7 +59,6 @@ gn_start_wrkr (const char * const path, int ipc_sock,
         }
         default: // Parent.
         {
-            (void)list; // TODO: Remove.
             // Wait for a connection from the worker process we just started.
             struct pollfd pfd = {
                 .fd = ipc_sock,
@@ -105,7 +104,7 @@ gn_start_wrkr (const char * const path, int ipc_sock,
                 }
                 case 0:
                 {
-                    fprintf (stderr, "Timeout while waiting to accept IPC connection. %s.\n", strerror (errno));
+                    fprintf (stderr, "Timeout while waiting to accept IPC connection.\n");
                     break;
                 }
                 case -1:
