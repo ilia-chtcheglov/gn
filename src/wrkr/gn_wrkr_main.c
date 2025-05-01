@@ -115,7 +115,38 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
                     }
                     else
                     {
-
+                        switch (errno)
+                        {
+                            case EAGAIN:
+                            case ECONNABORTED:
+                            case EINTR:
+                                break;
+                            case EMFILE:
+                            case ENFILE:
+                            case ENOBUFS:
+                            case ENOMEM:
+                            case EPERM:
+                            {
+                                fprintf (stderr, "Failed to accept connection. %s.\n", strerror (errno));
+                                break;
+                            }
+                            case EBADF:
+                            case EFAULT:
+                            case EINVAL:
+                            case ENOTSOCK:
+                            case EOPNOTSUPP:
+                            case EPROTO:
+                            {
+                                fprintf (stderr, "Failed to accept connection. %s.\n", strerror (errno));
+                                main_loop = false;
+                                break;
+                            }
+                            default:
+                            {
+                                fprintf (stderr, "Failed to accept connection. %s.\n", strerror (errno));
+                                main_loop = false;
+                            }
+                        }
                     }
                 }
             }
