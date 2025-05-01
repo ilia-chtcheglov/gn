@@ -17,6 +17,10 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
 
 __attribute__((warn_unused_result))
 int
+gn_acpt_conns (int * const repoll_create1);
+
+__attribute__((warn_unused_result))
+int
 gn_ipc_conn (const int ipc_sock, const char * const ipc_addr_str);
 
 __attribute__((warn_unused_result))
