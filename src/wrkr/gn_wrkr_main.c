@@ -82,25 +82,25 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
             }
             default:
             {
-                if (repoll_wait > 0)
+                if (repoll_wait < -1)
                 {
-                    for (size_t i = 0; i < (size_t)repoll_wait; i++)
-                    {
-                        const struct gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)epoll_evts[i].data.ptr;
-                        int raccept4 = accept4 (serv_sock->fd, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
-                        if (raccept4 > -1)
-                        {
-                            printf ("Accepted connection from X to [%s]:%i.\n", serv_sock->addr, serv_sock->port);
-                        }
-                        else
-                        {
-
-                        }
-                    }
+                    fprintf (stderr, "epoll_wait() returned unexpected value %i.\n", repoll_wait);
+                    main_loop = false;
+                    break;
                 }
-                else
-                {
 
+                for (unsigned int i = 0; i < (unsigned int)repoll_wait; i++)
+                {
+                    const struct gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)epoll_evts[i].data.ptr;
+                    int raccept4 = accept4 (serv_sock->fd, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
+                    if (raccept4 > -1)
+                    {
+                        printf ("Accepted connection from X to [%s]:%i.\n", serv_sock->addr, serv_sock->port);
+                    }
+                    else
+                    {
+
+                    }
                 }
             }
         }
