@@ -15,6 +15,7 @@ gn_start_wrkr (const char * const path, int ipc_sock,
             char ** argv = (char **)malloc (4 * sizeof (char *));
             if (argv != NULL)
             {
+                // TODO: If malloc() for, for example, argv[0] fails other mallocs mustn't be called.
                 argv[0] = (char *)malloc (strlen (path) + 1);
                 if (argv[0] != NULL) strcpy (argv[0], path);
                 argv[1] = (char *)malloc (strlen ("--ipc") + 1);
