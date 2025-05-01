@@ -40,9 +40,23 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
         const int rpthread_create = pthread_create (&data->tid, NULL, gn_conn_mgmt_thrd, data);
         switch (rpthread_create)
         {
+            case 0:
+            {
+                // TODO: Add the connection management thread data structure to the list.
+                break;
+            }
+            case EAGAIN:
+            case EINVAL:
+            case EPERM:
+            {
+                fprintf (stderr, "Failed to create connection management thread. %s.\n", strerror (rpthread_create));
+                // TODO: Stop process on EINVAL or EPERM.
+                break;
+            }
             default:
             {
-
+                fprintf (stderr, "pthread_create() returned unexpected value %i.\n", rpthread_create);
+                // TODO: Stop process.
             }
         }
     }
@@ -53,6 +67,9 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     {
         if (gn_acpt_conns (&repoll_create1) != EXIT_SUCCESS) main_loop = false;
     }
+
+    // TODO: Stop connection management threads.
+    // TODO: Free connection management thread data structures.
 
     // Close the epoll instance created for server sockets.
     close (repoll_create1);
