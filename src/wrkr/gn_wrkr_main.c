@@ -92,10 +92,24 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
                 for (unsigned int i = 0; i < (unsigned int)repoll_wait; i++)
                 {
                     const struct gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)epoll_evts[i].data.ptr;
-                    int raccept4 = accept4 (serv_sock->fd, NULL, NULL, SOCK_CLOEXEC | SOCK_NONBLOCK);
+                    struct sockaddr_in sin;
+                    memset (&sin, 0, sizeof (sin));
+                    socklen_t sin_sz = sizeof (sin);
+
+                    int raccept4 = accept4 (serv_sock->fd, &sin, &sin_sz, SOCK_CLOEXEC | SOCK_NONBLOCK);
                     if (raccept4 > -1)
                     {
-                        printf ("Accepted connection from X to [%s]:%i.\n", serv_sock->addr, serv_sock->port);
+                        char saddr[INET_ADDRSTRLEN];
+                        memset (saddr, 0, sizeof (saddr));
+
+                        const char * const rinet_ntop = inet_ntop (AF_INET, &sin.sin_addr, saddr, sizeof (saddr));
+                        if (rinet_ntop == NULL)
+                        {
+                            fprintf (stderr, "inet_ntop() failed. %s.\n", strerror (errno));
+                        }
+
+                        printf ("Accepted connection from [%s] to [%s]:%i.\n", saddr, serv_sock->addr, serv_sock->port);
+                        close (raccept4);
                     }
                     else
                     {
