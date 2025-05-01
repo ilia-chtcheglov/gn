@@ -10,6 +10,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+#include <gn_conn_mgmt_thrd_data_list_t.h>
 #include <gn_serv_sock_list_t.h>
 
 void
@@ -18,6 +19,9 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
 __attribute__((warn_unused_result))
 int
 gn_acpt_conns (int * const repoll_create1);
+
+void *
+gn_conn_mgmt_thrd (void * const p);
 
 __attribute__((warn_unused_result))
 int
