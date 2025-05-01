@@ -108,7 +108,9 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
                             fprintf (stderr, "inet_ntop() failed. %s.\n", strerror (errno));
                         }
 
-                        printf ("Accepted connection from [%s] to [%s]:%i.\n", saddr, serv_sock->addr, serv_sock->port);
+                        const uint16_t sport = ntohs (sin.sin_port);
+                        printf ("Accepted connection from [%s]:%i to [%s]:%i.\n",
+                                saddr, sport, serv_sock->addr, serv_sock->port);
                         close (raccept4);
                     }
                     else
