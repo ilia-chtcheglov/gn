@@ -21,6 +21,6 @@ gn_ipc_conn (const int ipc_sock, const char * const ipc_addr_str);
 
 __attribute__((warn_unused_result))
 int
-gn_recv_serv_sock (const int ipc_sock, const int repoll_create1, gn_serv_sock_list_t * const serv_sock_list);
+gn_recv_serv_socks (const int ipc_sock, const int repoll_create1, gn_serv_sock_list_t * const serv_sock_list);
 
 #endif // GN_WRKR_MAIN_H

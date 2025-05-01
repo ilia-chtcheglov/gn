@@ -5,11 +5,10 @@
 void
 gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str)
 {
-    printf ("[%i] Worker started. Received IPC address \"%s\".\n", getpid (), ipc_addr_str);
-
     // Connect to the master process.
     if (gn_ipc_conn (ipc_sock, ipc_addr_str) != EXIT_SUCCESS) return;
 
+    // Create an epoll instance for server sockets.
     int repoll_create1 = epoll_create1 (EPOLL_CLOEXEC);
     if (repoll_create1 < 0)
     {
@@ -18,15 +17,9 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     }
 
     // Receive server sockets data.
-    int rgn_recv_serv_sock = 0;
-    while (rgn_recv_serv_sock == 0)
+    if (gn_recv_serv_socks (ipc_sock, repoll_create1, serv_sock_list) != 1)
     {
-        rgn_recv_serv_sock = gn_recv_serv_sock (ipc_sock, repoll_create1, serv_sock_list);
-    }
-
-    if (rgn_recv_serv_sock != 1)
-    {
-        fprintf (stderr, "Error occured while receiving server socket data.\n");
+        fprintf (stderr, "Error occured while receiving server sockets data.\n");
         return;
     }
 
@@ -153,5 +146,6 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
         }
     }
 
+    // Close the epoll instance created for server sockets.
     close (repoll_create1);
 }

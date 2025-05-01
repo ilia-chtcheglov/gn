@@ -24,6 +24,7 @@ mstr_files = files(
 wrkr_files = files(
     'src/wrkr/gn_ipc_conn.c',
     'src/wrkr/gn_recv_serv_sock.c',
+    'src/wrkr/gn_recv_serv_socks.c',
     'src/wrkr/gn_wrkr_main.c'
 )
 
