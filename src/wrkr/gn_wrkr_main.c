@@ -1,5 +1,40 @@
 #include <gn_wrkr_main.h>
 
+__attribute__((warn_unused_result))
+int
+gn_conn_mgmt_thrd_data_list_push_back (gn_conn_mgmt_thrd_data_list_t * const list,
+                                       gn_conn_mgmt_thrd_data_t * const data);
+
+__attribute__((warn_unused_result))
+int
+gn_conn_mgmt_thrd_data_list_push_back (gn_conn_mgmt_thrd_data_list_t * const list,
+                                       gn_conn_mgmt_thrd_data_t * const data)
+{
+    switch (list->len)
+    {
+        case 0:
+        {
+            list->head = list->tail = data->prev = data->next = data;
+            break;
+        }
+        case UINT8_MAX:
+        {
+            return 1;
+        }
+        default:
+        {
+            list->tail->next = data;
+            data->prev = list->tail;
+            list->head->prev = data;
+            data->next = list->head;
+            list->tail = data;
+        }
+    }
+
+    list->len++;
+    return 0;
+}
+
 void
 gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str)
 {
@@ -42,7 +77,8 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
         {
             case 0:
             {
-                // TODO: Add the connection management thread data structure to the list.
+                // TODO: Don't ignore returned value.
+                (void)! gn_conn_mgmt_thrd_data_list_push_back (&conn_mgmt_thrd_data_list, data);
                 break;
             }
             case EAGAIN:
