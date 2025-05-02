@@ -38,7 +38,20 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         gn_conn_t * conn = (gn_conn_t *)malloc (sizeof (gn_conn_t));
         if (conn != NULL)
         {
-
+            memset (conn, 0, sizeof (gn_conn_t));
+            conn->saddr = (char *)malloc (strlen (saddr) + 1);
+            if (conn->saddr != NULL)
+            {
+                strcpy (conn->saddr, saddr);
+                conn->fd = raccept4;
+                conn->sport = sport;
+                free (conn->saddr);
+            }
+            else
+            {
+                fprintf (stderr, "Failed to allocate buffer for source IP.\n");
+            }
+            free (conn);
         }
         else
         {
