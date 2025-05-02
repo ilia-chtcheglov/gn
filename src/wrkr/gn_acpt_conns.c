@@ -2,7 +2,7 @@
 
 __attribute__((warn_unused_result))
 int
-gn_acpt_conns (int * const repoll_create1)
+gn_acpt_conns (int * const repoll_create1, gn_conn_mgmt_thrd_data_list_t * const list)
 {
     struct epoll_event epoll_evts[64];
     memset (epoll_evts, 0, sizeof (epoll_evts));
@@ -52,7 +52,7 @@ gn_acpt_conns (int * const repoll_create1)
             for (unsigned int i = 0; i < (unsigned int)repoll_wait; i++)
             {
                 const struct gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)epoll_evts[i].data.ptr;
-                if (gn_acpt_conn (serv_sock) == EXIT_FAILURE) return EXIT_FAILURE;
+                if (gn_acpt_conn (serv_sock, list) == EXIT_FAILURE) return EXIT_FAILURE;
             }
         }
     }

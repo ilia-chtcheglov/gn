@@ -13,8 +13,9 @@ struct gn_conn_t
 
 __attribute__((warn_unused_result))
 int
-gn_acpt_conn (const gn_serv_sock_t * const serv_sock)
+gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_list_t * const list)
 {
+    (void)list; // TODO: Remove.
     struct sockaddr_in sin;
     memset (&sin, 0, sizeof (sin));
     socklen_t sin_sz = sizeof (sin);

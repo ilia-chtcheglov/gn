@@ -101,7 +101,7 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     bool main_loop = true;
     while (main_loop)
     {
-        if (gn_acpt_conns (&repoll_create1) != EXIT_SUCCESS) main_loop = false;
+        if (gn_acpt_conns (&repoll_create1, &conn_mgmt_thrd_data_list) != EXIT_SUCCESS) main_loop = false;
     }
 
     // TODO: Stop connection management threads.
