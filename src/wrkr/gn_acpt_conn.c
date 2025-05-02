@@ -1,5 +1,16 @@
 #include <gn_acpt_conn.h>
 
+typedef struct gn_conn_t gn_conn_t;
+
+struct gn_conn_t
+{
+    int         fd;
+    char *      saddr;
+    uint16_t    sport;
+    gn_conn_t * prev;
+    gn_conn_t * next;
+};
+
 __attribute__((warn_unused_result))
 int
 gn_acpt_conn (const gn_serv_sock_t * const serv_sock)
@@ -21,8 +32,18 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock)
         }
 
         const uint16_t sport = ntohs (sin.sin_port);
-        printf ("Accepted connection from [%s]:%i to [%s]:%i.\n",
-                saddr, sport, serv_sock->addr, serv_sock->port);
+        printf ("Accepted connection from [%s]:%i to [%s]:%i.\n", saddr, sport, serv_sock->addr, serv_sock->port);
+
+        gn_conn_t * conn = (gn_conn_t *)malloc (sizeof (gn_conn_t));
+        if (conn != NULL)
+        {
+
+        }
+        else
+        {
+            fprintf (stderr, "Failed to allocate structure for connection.\n");
+        }
+
         close (raccept4);
     }
     else
