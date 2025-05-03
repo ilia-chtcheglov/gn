@@ -1,5 +1,6 @@
 #include <gn_conn_mgmt_thrd.h>
 
+#include <arpa/inet.h>
 #include <unistd.h>
 
 int
@@ -44,22 +45,34 @@ gn_conn_mgmt_thrd (void * const p)
     bool main_loop = true;
     while (main_loop)
     {
-        printf ("len: %u\n", conn_list.len);
+        gn_conn_t * conn = conn_list.head;
+        for (uint32_t i = 0; i < conn_list.len; conn = conn->next, i++)
+        {
+            // Test code.
+            char buf[1024];
+            const ssize_t rrecv = recv (conn->fd, buf, sizeof (buf) - 1, 0);
+            if (rrecv > 0)
+            {
+                const size_t buf_len = (size_t)rrecv;
+                buf[buf_len] = '\0';
+                printf ("Received (%lu) \"%s\"\n", buf_len, buf);
+            }
+        }
+
         if (data->conn != NULL)
         {
-            // TODO: Push connection to @conn_list.
             if (gn_conn_list_push_back (&conn_list, data->conn) != 0)
             {
                 close (data->conn->fd);
                 free (data->conn->saddr);
-                free (data->conn); // TODO: Remove.
+                free (data->conn);
             }
             data->conn = NULL;
         }
 
-        if (conn_list.len == UINT32_MAX) main_loop = false;
-
         sleep (1);
+        // TODO: Remove.
+        if (conn_list.len == UINT32_MAX) main_loop = false;
     }
 
     return NULL;
