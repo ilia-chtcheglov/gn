@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <gn_conn_t.h>
 #include <gn_conn_mgmt_thrd_data_list_t.h>
 #include <gn_serv_sock_t.h>
 
