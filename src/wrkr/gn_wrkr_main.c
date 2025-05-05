@@ -61,7 +61,7 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     memset (&conn_mgmt_thrd_data_list, 0, sizeof (conn_mgmt_thrd_data_list));
 
     // Start connection management threads.
-    for (uint8_t i = 0; i < 2; i++)
+    for (uint8_t i = 0; i < 1; i++)
     {
         gn_conn_mgmt_thrd_data_t * data = (gn_conn_mgmt_thrd_data_t *)malloc (sizeof (gn_conn_mgmt_thrd_data_t));
         if (data != NULL) memset (data, 0, sizeof (gn_conn_mgmt_thrd_data_t));
