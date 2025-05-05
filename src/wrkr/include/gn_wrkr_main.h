@@ -21,8 +21,18 @@ __attribute__((warn_unused_result))
 int
 gn_acpt_conns (int * const repoll_create1, gn_conn_mgmt_thrd_data_list_t * const list);
 
+__attribute__((warn_unused_result))
+int
+gn_conn_acpt_thrd_data_list_push_back (gn_conn_acpt_thrd_data_list_t * const list,
+                                       gn_conn_acpt_thrd_data_t * const data);
+
 void *
 gn_conn_acpt_thrd (void * const p);
+
+__attribute__((warn_unused_result))
+int
+gn_conn_mgmt_thrd_data_list_push_back (gn_conn_mgmt_thrd_data_list_t * const list,
+                                       gn_conn_mgmt_thrd_data_t * const data);
 
 void *
 gn_conn_mgmt_thrd (void * const p);

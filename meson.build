@@ -24,7 +24,9 @@ mstr_files = files(
 wrkr_files = files(
     'src/wrkr/gn_acpt_conn.c',
     'src/wrkr/gn_acpt_conns.c',
+    'src/wrkr/gn_conn_acpt_thrd_data_list_push_back.c',
     'src/wrkr/gn_conn_acpt_thrd.c',
+    'src/wrkr/gn_conn_mgmt_thrd_data_list_push_back.c',
     'src/wrkr/gn_conn_mgmt_thrd.c',
     'src/wrkr/gn_ipc_conn.c',
     'src/wrkr/gn_recv_serv_sock.c',
