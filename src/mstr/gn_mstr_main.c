@@ -119,7 +119,7 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         default:
         {
             // Start worker processes.
-            for (uint8_t i = 0; i < 2; i++)
+            for (uint8_t i = 0; i < 1; i++)
             {
                 gn_start_wrkr (self_path, ipc_sock, sun.sun_path, serv_sock_list);
             }
