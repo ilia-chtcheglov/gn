@@ -33,7 +33,7 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     memset (&conn_acpt_thrd_data_list, 0, sizeof (conn_acpt_thrd_data_list));
 
     // Start connection acceptance threads.
-    gn_start_conn_acpt_thrds (1, &conn_acpt_thrd_data_list);
+    gn_start_conn_acpt_thrds (1, &conn_acpt_thrd_data_list, &conn_mgmt_thrd_data_list);
 
     // Main loop.
     bool main_loop = true;

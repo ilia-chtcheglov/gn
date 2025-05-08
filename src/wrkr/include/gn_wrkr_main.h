@@ -30,9 +30,12 @@ int
 gn_recv_serv_socks (const int ipc_sock, const int repoll_create1, gn_serv_sock_list_t * const serv_sock_list);
 
 void
-gn_start_conn_acpt_thrds (const uint8_t num, gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list);
+gn_start_conn_acpt_thrds (const uint8_t num,
+                          gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list,
+                          gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
 
 void
-gn_start_conn_mgmt_thrds (const uint8_t num, gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
+gn_start_conn_mgmt_thrds (const uint8_t num,
+                          gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
 
 #endif // GN_WRKR_MAIN_H
