@@ -19,10 +19,6 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
 
 __attribute__((warn_unused_result))
 int
-gn_acpt_conns (int * const repoll_create1, gn_conn_mgmt_thrd_data_list_t * const list);
-
-__attribute__((warn_unused_result))
-int
 gn_ipc_conn (const int ipc_sock, const char * const ipc_addr_str);
 
 __attribute__((warn_unused_result))
@@ -32,6 +28,7 @@ gn_recv_serv_socks (const int ipc_sock, const int repoll_create1, gn_serv_sock_l
 void
 gn_start_conn_acpt_thrds (const uint8_t num,
                           gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list,
+                          const int repoll_create1,
                           gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
 
 void

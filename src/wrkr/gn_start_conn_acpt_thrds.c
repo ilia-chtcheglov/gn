@@ -3,6 +3,7 @@
 void
 gn_start_conn_acpt_thrds (const uint8_t num,
                           gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list,
+                          const int repoll_create1,
                           gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list)
 {
     for (uint8_t i = 0; i < num; i++)
@@ -21,6 +22,7 @@ gn_start_conn_acpt_thrds (const uint8_t num,
         {
             case 0:
             {
+                data->repoll_create1 = repoll_create1;
                 data->conn_mgmt_thrd_data_list = conn_mgmt_thrd_data_list;
                 // TODO: Don't ignore returned value.
                 (void)! gn_conn_acpt_thrd_data_list_push_back (conn_acpt_thrd_data_list, data);

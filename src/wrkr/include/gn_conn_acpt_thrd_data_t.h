@@ -11,6 +11,7 @@ typedef struct gn_conn_acpt_thrd_data_t gn_conn_acpt_thrd_data_t;
 struct gn_conn_acpt_thrd_data_t
 {
     pthread_t                       tid;
+    int                             repoll_create1;
     gn_conn_mgmt_thrd_data_list_t * conn_mgmt_thrd_data_list;
     gn_conn_acpt_thrd_data_t *      prev;
     gn_conn_acpt_thrd_data_t *      next;

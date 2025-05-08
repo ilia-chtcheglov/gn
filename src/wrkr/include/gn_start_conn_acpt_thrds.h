@@ -12,6 +12,7 @@
 void
 gn_start_conn_acpt_thrds (const uint8_t num,
                           gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list,
+                          const int repoll_create1,
                           gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
 
 __attribute__((warn_unused_result))
