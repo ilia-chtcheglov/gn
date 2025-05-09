@@ -3,6 +3,8 @@
 void
 gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str)
 {
+    signal (SIGINT, SIG_IGN);
+
     // Connect to the master process.
     if (gn_ipc_conn (ipc_sock, ipc_addr_str) != EXIT_SUCCESS) return;
 
@@ -35,11 +37,48 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     // Start connection acceptance threads.
     gn_start_conn_acpt_thrds (1, &conn_acpt_thrd_data_list, repoll_create1, &conn_mgmt_thrd_data_list);
 
+    struct pollfd pfd = {
+        .fd = ipc_sock,
+        .events = POLLIN,
+        .revents = 0
+    };
     // Main loop.
     bool main_loop = true;
     while (main_loop)
     {
-        sleep (1);
+        const int rpoll = poll (&pfd, 1, 1000);
+        switch (rpoll)
+        {
+            case 1:
+            {
+                if (pfd.revents & POLLHUP)
+                {
+                    printf ("IPC connection closed.\n");
+                    main_loop = false;
+                }
+                break;
+            }
+            case 0:
+            {
+                break;
+            }
+            case -1:
+            {
+                switch (errno)
+                {
+                    case EINTR:
+                    case ENOMEM:
+                        break;
+                    default:
+                        fprintf (stderr, "Failed to poll IPC socket. %s.\n", strerror (errno));
+                }
+                break;
+            }
+            default:
+            {
+                
+            }
+        }
     }
 
     // TODO: Stop connection acceptance/management threads.
