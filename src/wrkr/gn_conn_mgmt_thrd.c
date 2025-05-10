@@ -59,19 +59,23 @@ gn_conn_mgmt_thrd (void * const p)
             }
         }
 
-        if (data->conn != NULL)
+        for (int8_t i = sizeof (data->new_conns) / sizeof (atomic_uintptr_t) - 1; i > -1 ; i--)
         {
-            if (gn_conn_list_push_back (&conn_list, data->conn) != 0)
+            if (data->new_conns[i] == (uintptr_t)NULL) continue;
+
+            gn_conn_t * const new_conn = (gn_conn_t *)data->new_conns[i];
+            if (gn_conn_list_push_back (&conn_list, new_conn) != 0)
             {
-                close (data->conn->fd);
-                free (data->conn->saddr);
-                free (data->conn);
+                close (new_conn->fd);
+                free (new_conn->saddr);
+                free (new_conn);
             }
-            data->conn = NULL;
+            data->new_conns[i] = (uintptr_t)NULL;
         }
 
         sleep (1);
         // TODO: Remove.
+        if (data->tid == 0) return NULL;
         if (conn_list.len == UINT32_MAX) main_loop = false;
     }
 

@@ -6,7 +6,6 @@ __attribute__((warn_unused_result))
 int
 gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_list_t * const list)
 {
-    (void)list; // TODO: Remove.
     struct sockaddr_in sin;
     memset (&sin, 0, sizeof (sin));
     socklen_t sin_sz = sizeof (sin);
@@ -49,20 +48,23 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
                 const gn_conn_mgmt_thrd_data_t * data = list->head;
                 for (uint8_t i = 0; i < list->len; data = data->next, i++)
                 {
-                    atomic_uintptr_t expected = (atomic_uintptr_t)NULL;
-                    if (atomic_compare_exchange_strong_explicit (&data->conn, &expected, conn,
-                                                                 memory_order_relaxed, memory_order_relaxed))
+                    for (uint8_t j = 0; j < sizeof (data->new_conns) / sizeof (atomic_uintptr_t); j++)
                     {
-                        conn = NULL;
-                        raccept4 = -1;
-                    }
-                    else
-                    {
-                        fprintf (stderr, "Failed to pass connection to connection management thread.\n");
+                        atomic_uintptr_t expected = (uintptr_t)NULL;
+                        if (atomic_compare_exchange_strong_explicit (&data->new_conns[j], &expected, (uintptr_t)conn,
+                                                                     memory_order_relaxed, memory_order_relaxed))
+                        {
+                            conn = NULL;
+                            raccept4 = -1;
+                        }
                     }
                 }
 
-                if (conn != NULL) free (conn->saddr);
+                if (conn != NULL)
+                {
+                    fprintf (stderr, "Failed to pass connection to connection management thread.\n");
+                    free (conn->saddr);
+                }
             }
             else
             {
