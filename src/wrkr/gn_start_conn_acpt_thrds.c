@@ -22,6 +22,8 @@ gn_start_conn_acpt_thrds (const uint8_t num,
         {
             case 0:
             {
+                atomic_store_explicit (&data->stop, false, memory_order_relaxed);
+                atomic_store_explicit (&data->state, GN_CONN_ACPT_THRD_STATE_STARTING, memory_order_relaxed);
                 data->repoll_create1 = repoll_create1;
                 data->conn_mgmt_thrd_data_list = conn_mgmt_thrd_data_list;
                 // TODO: Don't ignore returned value.

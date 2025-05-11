@@ -5,6 +5,8 @@
 
 #include <gn_conn_acpt_thrd_data_t.h>
 
+#include <gn_conn_acpt_thrd_state_e.h>
+
 void *
 gn_conn_acpt_thrd (void * const p);
 

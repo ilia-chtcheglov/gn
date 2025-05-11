@@ -1,5 +1,80 @@
 #include <gn_wrkr_main.h>
 
+#include <gn_conn_acpt_thrd_state_e.h>
+
+void
+gn_conn_acpt_thrd_data_list_remove (gn_conn_acpt_thrd_data_list_t * const list,
+                                    gn_conn_acpt_thrd_data_t * const data);
+
+void
+gn_conn_acpt_thrd_data_list_remove (gn_conn_acpt_thrd_data_list_t * const list,
+                                    gn_conn_acpt_thrd_data_t * const data)
+{
+    switch (list->len)
+    {
+        case 0:
+            return;
+        case 1:
+        {
+            list->head = list->tail = NULL;
+            break;
+        }
+        default:
+        {
+            data->prev->next = data->next;
+            data->next->prev = data->prev;
+            if (data == list->head) list->head = data->next;
+            else if (data == list->tail) list->tail = data->prev;
+        }
+    }
+
+    list->len--;
+    return;
+}
+
+void
+gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list);
+
+void
+gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_data_list)
+{
+    while (conn_acpt_thrd_data_list->len > 0)
+    {
+        gn_conn_acpt_thrd_data_t * conn_acpt_thrd_data = conn_acpt_thrd_data_list->head;
+        for (uint8_t i = 0; i < conn_acpt_thrd_data_list->len; i++)
+        {
+            switch (conn_acpt_thrd_data->state)
+            {
+                case GN_CONN_ACPT_THRD_STATE_STARTING:
+                case GN_CONN_ACPT_THRD_STATE_STOPPING:
+                    break;
+                case GN_CONN_ACPT_THRD_STATE_RUNNING:
+                {
+                    conn_acpt_thrd_data->stop = true;
+                    break;
+                }
+                case GN_CONN_ACPT_THRD_STATE_STOPPED:
+                {
+                    gn_conn_acpt_thrd_data_list_remove (conn_acpt_thrd_data_list, conn_acpt_thrd_data);
+                    gn_conn_acpt_thrd_data_t * next_conn_acpt_thrd_data = NULL;
+                    if (conn_acpt_thrd_data_list->len > 0) next_conn_acpt_thrd_data = conn_acpt_thrd_data->next;
+
+                    free (conn_acpt_thrd_data);
+                    if (next_conn_acpt_thrd_data != NULL) conn_acpt_thrd_data = next_conn_acpt_thrd_data;
+                    else conn_acpt_thrd_data = NULL;
+
+                    i--;
+                    break;
+                }
+                default:
+                {
+                    fprintf (stderr, "Invalid connection acceptance thread state %i.\n", conn_acpt_thrd_data->state);
+                }
+            }
+        }
+    }
+}
+
 void
 gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str)
 {
@@ -81,6 +156,8 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
         }
     }
 
+    printf ("Stopping connection acceptance threads.\n");
+    gn_stop_conn_acpt_thrds (&conn_acpt_thrd_data_list);
     // TODO: Stop connection acceptance/management threads.
     // TODO: Free connection acceptance/management thread data structures.
 
