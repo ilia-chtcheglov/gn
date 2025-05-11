@@ -19,6 +19,15 @@ gn_start_conn_mgmt_thrds (const uint8_t num, gn_conn_mgmt_thrd_data_list_t * con
         {
             case 0:
             {
+                const int rdetach = pthread_detach (data->tid);
+                if (rdetach != 0)
+                {
+                    fprintf (stderr, "Failed to detach connection management thread. %s.\n", strerror (rdetach));
+                    break;
+                }
+
+                atomic_store_explicit (&data->stop, false, memory_order_relaxed);
+                atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STARTING, memory_order_relaxed);
                 // TODO: Don't ignore returned value.
                 (void)! gn_conn_mgmt_thrd_data_list_push_back (conn_mgmt_thrd_data_list, data);
                 break;
