@@ -38,6 +38,7 @@ void *
 gn_conn_mgmt_thrd (void * const p)
 {
     gn_conn_mgmt_thrd_data_t * const data = (gn_conn_mgmt_thrd_data_t *)p;
+    atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_RUNNING, memory_order_relaxed);
 
     gn_conn_list_t conn_list;
     memset (&conn_list, 0, sizeof (conn_list));
@@ -73,11 +74,16 @@ gn_conn_mgmt_thrd (void * const p)
             data->new_conns[i] = (uintptr_t)NULL;
         }
 
+        if (atomic_load_explicit (&data->stop, memory_order_relaxed))
+        {
+            printf ("Connection management thread %lu stopping.\n", data->tid);
+            atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPING, memory_order_relaxed);
+            main_loop = false;
+        }
+
         sleep (1);
-        // TODO: Remove.
-        if (data->tid == 0) return NULL;
-        if (conn_list.len == UINT32_MAX) main_loop = false;
     }
 
+    atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPED, memory_order_relaxed);
     return NULL;
 }

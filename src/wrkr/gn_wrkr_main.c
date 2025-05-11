@@ -1,6 +1,7 @@
 #include <gn_wrkr_main.h>
 
 #include <gn_conn_acpt_thrd_state_e.h>
+#include <gn_conn_mgmt_thrd_state_e.h>
 
 void
 gn_conn_acpt_thrd_data_list_remove (gn_conn_acpt_thrd_data_list_t * const list,
@@ -43,14 +44,16 @@ gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_da
         gn_conn_acpt_thrd_data_t * conn_acpt_thrd_data = conn_acpt_thrd_data_list->head;
         for (uint8_t i = 0; i < conn_acpt_thrd_data_list->len; i++)
         {
-            switch (conn_acpt_thrd_data->state)
+            gn_conn_acpt_thrd_state_e state =
+                (gn_conn_acpt_thrd_state_e)atomic_load_explicit (&conn_acpt_thrd_data->state, memory_order_relaxed);
+            switch (state)
             {
                 case GN_CONN_ACPT_THRD_STATE_STARTING:
                 case GN_CONN_ACPT_THRD_STATE_STOPPING:
                     break;
                 case GN_CONN_ACPT_THRD_STATE_RUNNING:
                 {
-                    conn_acpt_thrd_data->stop = true;
+                    atomic_store_explicit (&conn_acpt_thrd_data->stop, true, memory_order_relaxed);
                     break;
                 }
                 case GN_CONN_ACPT_THRD_STATE_STOPPED:
@@ -68,7 +71,82 @@ gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_da
                 }
                 default:
                 {
-                    fprintf (stderr, "Invalid connection acceptance thread state %i.\n", conn_acpt_thrd_data->state);
+                    fprintf (stderr, "Invalid connection acceptance thread state %u.\n", state);
+                }
+            }
+        }
+    }
+}
+
+void
+gn_conn_mgmt_thrd_data_list_remove (gn_conn_mgmt_thrd_data_list_t * const list,
+                                    gn_conn_mgmt_thrd_data_t * const data);
+
+void
+gn_conn_mgmt_thrd_data_list_remove (gn_conn_mgmt_thrd_data_list_t * const list,
+                                    gn_conn_mgmt_thrd_data_t * const data)
+{
+    switch (list->len)
+    {
+        case 0:
+            return;
+        case 1:
+        {
+            list->head = list->tail = NULL;
+            break;
+        }
+        default:
+        {
+            data->prev->next = data->next;
+            data->next->prev = data->prev;
+            if (data == list->head) list->head = data->next;
+            else if (data == list->tail) list->tail = data->prev;
+        }
+    }
+
+    list->len--;
+    return;
+}
+
+void
+gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
+
+void
+gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list)
+{
+    while (conn_mgmt_thrd_data_list->len > 0)
+    {
+        gn_conn_mgmt_thrd_data_t * conn_mgmt_thrd_data = conn_mgmt_thrd_data_list->head;
+        for (uint8_t i = 0; i < conn_mgmt_thrd_data_list->len; i++)
+        {
+            gn_conn_mgmt_thrd_state_e state =
+                (gn_conn_mgmt_thrd_state_e)atomic_load_explicit (&conn_mgmt_thrd_data->state, memory_order_relaxed);
+            switch (state)
+            {
+                case GN_CONN_MGMT_THRD_STATE_STARTING:
+                case GN_CONN_MGMT_THRD_STATE_STOPPING:
+                    break;
+                case GN_CONN_MGMT_THRD_STATE_RUNNING:
+                {
+                    atomic_store_explicit (&conn_mgmt_thrd_data->stop, true, memory_order_relaxed);
+                    break;
+                }
+                case GN_CONN_MGMT_THRD_STATE_STOPPED:
+                {
+                    gn_conn_mgmt_thrd_data_list_remove (conn_mgmt_thrd_data_list, conn_mgmt_thrd_data);
+                    gn_conn_mgmt_thrd_data_t * next_conn_mgmt_thrd_data = NULL;
+                    if (conn_mgmt_thrd_data_list->len > 0) next_conn_mgmt_thrd_data = conn_mgmt_thrd_data->next;
+
+                    free (conn_mgmt_thrd_data);
+                    if (next_conn_mgmt_thrd_data != NULL) conn_mgmt_thrd_data = next_conn_mgmt_thrd_data;
+                    else conn_mgmt_thrd_data = NULL;
+
+                    i--;
+                    break;
+                }
+                default:
+                {
+                    fprintf (stderr, "Invalid connection management thread state %u.\n", state);
                 }
             }
         }
@@ -158,8 +236,8 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
 
     printf ("Stopping connection acceptance threads.\n");
     gn_stop_conn_acpt_thrds (&conn_acpt_thrd_data_list);
-    // TODO: Stop connection acceptance/management threads.
-    // TODO: Free connection acceptance/management thread data structures.
+    printf ("Stopping connection management threads.\n");
+    gn_stop_conn_mgmt_thrds (&conn_mgmt_thrd_data_list);
 
     // Close the epoll instance created for server sockets.
     close (repoll_create1);

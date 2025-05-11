@@ -2,11 +2,14 @@
 #define GN_START_CONN_MGMT_THRDS_H
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <gn_conn_mgmt_thrd_data_list_t.h>
+
+#include <gn_conn_mgmt_thrd_state_e.h>
 
 void
 gn_start_conn_mgmt_thrds (const uint8_t num, gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);

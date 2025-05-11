@@ -11,6 +11,8 @@ typedef struct gn_conn_mgmt_thrd_data_t gn_conn_mgmt_thrd_data_t;
 struct gn_conn_mgmt_thrd_data_t
 {
     pthread_t                  tid;
+    atomic_bool                stop;
+    atomic_int                 state;
     atomic_uintptr_t           new_conns[127];
     gn_conn_mgmt_thrd_data_t * prev;
     gn_conn_mgmt_thrd_data_t * next;
