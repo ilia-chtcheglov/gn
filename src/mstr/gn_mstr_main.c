@@ -1,8 +1,27 @@
 #include <gn_mstr_main.h>
 
+bool sigint_rcvd = false;
+
+void
+gn_sigint_handler (const int signum);
+
+void
+gn_sigint_handler (const int signum)
+{
+    (void)signum;
+    printf ("Master process received SIGINT.\n");
+    sigint_rcvd = true;
+}
+
 void
 gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
+    if (signal (SIGINT, gn_sigint_handler) == SIG_ERR)
+    {
+        fprintf (stderr, "Failed to set SIGINT handler.\n");
+        return;
+    }
+
     // Get current time to generate a path for the IPC socket.
     struct timespec ts;
     memset (&ts, 0, sizeof (ts));
@@ -129,6 +148,7 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     // Main loop.
     while (true)
     {
+        if (sigint_rcvd) break;
         sleep (1);
     }
 }
