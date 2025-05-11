@@ -22,6 +22,13 @@ gn_start_conn_acpt_thrds (const uint8_t num,
         {
             case 0:
             {
+                const int rdetach = pthread_detach (data->tid);
+                if (rdetach != 0)
+                {
+                    fprintf (stderr, "Failed to detach connection acceptance thread. %s.\n", strerror (rdetach));
+                    break;
+                }
+
                 atomic_store_explicit (&data->stop, false, memory_order_relaxed);
                 atomic_store_explicit (&data->state, GN_CONN_ACPT_THRD_STATE_STARTING, memory_order_relaxed);
                 data->repoll_create1 = repoll_create1;
