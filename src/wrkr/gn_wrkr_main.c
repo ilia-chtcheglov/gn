@@ -48,9 +48,9 @@ gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const conn_acpt_thrd_da
                 (gn_conn_acpt_thrd_state_e)atomic_load_explicit (&conn_acpt_thrd_data->state, memory_order_relaxed);
             switch (state)
             {
-                case GN_CONN_ACPT_THRD_STATE_STARTING:
                 case GN_CONN_ACPT_THRD_STATE_STOPPING:
                     break;
+                case GN_CONN_ACPT_THRD_STATE_STARTING:
                 case GN_CONN_ACPT_THRD_STATE_RUNNING:
                 {
                     atomic_store_explicit (&conn_acpt_thrd_data->stop, true, memory_order_relaxed);
@@ -123,9 +123,9 @@ gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_da
                 (gn_conn_mgmt_thrd_state_e)atomic_load_explicit (&conn_mgmt_thrd_data->state, memory_order_relaxed);
             switch (state)
             {
-                case GN_CONN_MGMT_THRD_STATE_STARTING:
                 case GN_CONN_MGMT_THRD_STATE_STOPPING:
                     break;
+                case GN_CONN_MGMT_THRD_STATE_STARTING:
                 case GN_CONN_MGMT_THRD_STATE_RUNNING:
                 {
                     atomic_store_explicit (&conn_mgmt_thrd_data->stop, true, memory_order_relaxed);
