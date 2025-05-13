@@ -44,11 +44,14 @@ inc_dirs = include_directories(
     'src/wrkr/include'
 )
 
+dep_json_c = dependency('json-c')
+
 executable('gn', all_files,
     include_directories: inc_dirs,
     c_args: c_flags,
     link_args: [
     ],
     dependencies: [
+        dep_json_c
     ]
 )
