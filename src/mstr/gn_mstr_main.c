@@ -13,9 +13,50 @@ gn_sigint_handler (const int signum)
     sigint_rcvd = true;
 }
 
+#include <json-c/json.h>
+
+void
+gn_load_mstr_conf (void);
+
+void
+gn_load_mstr_conf (void)
+{
+    json_object * root = json_object_from_file ("/etc/gn/master.conf");
+    if (root == NULL)
+    {
+        fprintf (stderr, "Failed to parse master configuration file.\n");
+        return;
+    }
+
+    json_object_object_foreach(root, key, val)
+    {
+        if (strcmp (key, "workers") == 0 ||
+            strcmp (key, "connection_acceptance_threads") == 0 ||
+            strcmp (key, "connection_management_threads") == 0)
+        {
+            if (json_object_get_type (val) == json_type_int)
+            {
+                printf ("\"%s\": (%u) \"%s\"\n", key, json_object_get_type (val), json_object_get_string (val));
+            }
+            else
+            {
+                fprintf (stderr, "The value of directive \"%s\" must be an integer.\n", key);
+            }
+        }
+        else
+        {
+            fprintf (stderr, "Unsupported configuration directive \"%s\".\n", key);
+            break;
+        }
+    }
+
+    json_object_put (root);
+}
+
 void
 gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
+    // TODO: Use sigaction() instead of signal().
     if (signal (SIGINT, gn_sigint_handler) == SIG_ERR)
     {
         fprintf (stderr, "Failed to set SIGINT handler.\n");
@@ -106,6 +147,7 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         }
     }
 
+    gn_load_mstr_conf ();
     // Open server sockets.
     int rgn_open_serv_sock = gn_open_serv_sock (serv_sock_list, "0.0.0.0", 8080);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
