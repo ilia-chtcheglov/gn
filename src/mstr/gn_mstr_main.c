@@ -15,11 +15,18 @@ gn_sigint_handler (const int signum)
 
 #include <json-c/json.h>
 
-void
-gn_load_mstr_conf (void);
+typedef struct
+{
+    uint8_t workers;
+    uint8_t connection_acceptance_threads;
+    uint8_t connection_management_threads;
+} gn_mstr_conf_t;
 
 void
-gn_load_mstr_conf (void)
+gn_load_mstr_conf (gn_mstr_conf_t * const mstr_conf);
+
+void
+gn_load_mstr_conf (gn_mstr_conf_t * const mstr_conf)
 {
     json_object * root = json_object_from_file ("/etc/gn/master.conf");
     if (root == NULL)
@@ -50,9 +57,9 @@ gn_load_mstr_conf (void)
                 break;
             }
 
-            const uint8_t workers = (uint8_t)num;
+            mstr_conf->workers = (uint8_t)num;
 
-            printf ("\"%s\": %i\n", key, workers);
+            printf ("\"%s\": %i\n", key, mstr_conf->workers);
         }
         else if (strcmp (key, "connection_acceptance_threads") == 0)
         {
@@ -74,9 +81,9 @@ gn_load_mstr_conf (void)
                 break;
             }
 
-            const uint8_t connection_acceptance_threads = (uint8_t)num;
+            mstr_conf->connection_acceptance_threads = (uint8_t)num;
 
-            printf ("\"%s\": %i\n", key, connection_acceptance_threads);
+            printf ("\"%s\": %i\n", key, mstr_conf->connection_acceptance_threads);
         }
         else if (strcmp (key, "connection_management_threads") == 0)
         {
@@ -98,9 +105,9 @@ gn_load_mstr_conf (void)
                 break;
             }
 
-            const uint8_t connection_management_threads = (uint8_t)num;
+            mstr_conf->connection_management_threads = (uint8_t)num;
 
-            printf ("\"%s\": %i\n", key, connection_management_threads);
+            printf ("\"%s\": %i\n", key, mstr_conf->connection_management_threads);
         }
         else
         {
@@ -206,7 +213,13 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         }
     }
 
-    gn_load_mstr_conf ();
+    gn_mstr_conf_t mstr_conf;
+    mstr_conf.workers = 1;
+    mstr_conf.connection_acceptance_threads = 1;
+    mstr_conf.connection_management_threads = 1;
+
+    gn_load_mstr_conf (&mstr_conf);
+
     // Open server sockets.
     int rgn_open_serv_sock = gn_open_serv_sock (serv_sock_list, "0.0.0.0", 8080);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
@@ -239,7 +252,8 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         default:
         {
             // Start worker processes.
-            for (uint8_t i = 0; i < 1; i++)
+            printf ("Starting %i worker(s).\n", mstr_conf.workers);
+            for (uint8_t i = 0; i < mstr_conf.workers; i++)
             {
                 gn_start_wrkr (self_path, ipc_sock, sun.sun_path, serv_sock_list);
             }
