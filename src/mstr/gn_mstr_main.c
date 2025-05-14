@@ -30,18 +30,77 @@ gn_load_mstr_conf (void)
 
     json_object_object_foreach(root, key, val)
     {
-        if (strcmp (key, "workers") == 0 ||
-            strcmp (key, "connection_acceptance_threads") == 0 ||
-            strcmp (key, "connection_management_threads") == 0)
+        if (strcmp (key, "workers") == 0)
         {
-            if (json_object_get_type (val) == json_type_int)
-            {
-                printf ("\"%s\": (%u) \"%s\"\n", key, json_object_get_type (val), json_object_get_string (val));
-            }
-            else
+            if (json_object_get_type (val) != json_type_int)
             {
                 fprintf (stderr, "The value of directive \"%s\" must be an integer.\n", key);
+                break;
             }
+
+            const int32_t num = json_object_get_int (val);
+            if (num < 0)
+            {
+                fprintf (stderr, "Workers count cannot be lesser than zero.\n");
+                break;
+            }
+            if (num > UINT8_MAX)
+            {
+                fprintf (stderr, "Workers count cannot be greater than %i.\n", UINT8_MAX);
+                break;
+            }
+
+            const uint8_t workers = (uint8_t)num;
+
+            printf ("\"%s\": %i\n", key, workers);
+        }
+        else if (strcmp (key, "connection_acceptance_threads") == 0)
+        {
+            if (json_object_get_type (val) != json_type_int)
+            {
+                fprintf (stderr, "The value of directive \"%s\" must be an integer.\n", key);
+                break;
+            }
+
+            const int32_t num = json_object_get_int (val);
+            if (num < 0)
+            {
+                fprintf (stderr, "Connection acceptance threads count cannot be lesser than zero.\n");
+                break;
+            }
+            if (num > UINT8_MAX)
+            {
+                fprintf (stderr, "Connection acceptance threads count cannot be greater than %i.\n", UINT8_MAX);
+                break;
+            }
+
+            const uint8_t connection_acceptance_threads = (uint8_t)num;
+
+            printf ("\"%s\": %i\n", key, connection_acceptance_threads);
+        }
+        else if (strcmp (key, "connection_management_threads") == 0)
+        {
+            if (json_object_get_type (val) != json_type_int)
+            {
+                fprintf (stderr, "The value of directive \"%s\" must be an integer.\n", key);
+                break;
+            }
+
+            const int32_t num = json_object_get_int (val);
+            if (num < 0)
+            {
+                fprintf (stderr, "Connection management threads count cannot be lesser than zero.\n");
+                break;
+            }
+            if (num > UINT8_MAX)
+            {
+                fprintf (stderr, "Connection management threads count cannot be greater than %i.\n", UINT8_MAX);
+                break;
+            }
+
+            const uint8_t connection_management_threads = (uint8_t)num;
+
+            printf ("\"%s\": %i\n", key, connection_management_threads);
         }
         else
         {
