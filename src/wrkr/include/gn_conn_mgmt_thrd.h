@@ -15,4 +15,7 @@
 void *
 gn_conn_mgmt_thrd (void * const p);
 
+int
+gn_close (int * const fd);
+
 #endif // GN_CONN_MGMT_THRD_H

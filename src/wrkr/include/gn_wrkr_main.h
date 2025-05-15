@@ -18,6 +18,9 @@
 void
 gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str);
 
+int
+gn_close (int * const fd);
+
 __attribute__((warn_unused_result))
 int
 gn_ipc_conn (const int ipc_sock, const char * const ipc_addr_str);

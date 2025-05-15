@@ -78,7 +78,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         }
 
         // Close client socket.
-        close (raccept4);
+        gn_close (&raccept4);
     }
     else
     {

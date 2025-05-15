@@ -67,7 +67,7 @@ gn_conn_mgmt_thrd (void * const p)
             gn_conn_t * const new_conn = (gn_conn_t *)data->new_conns[i];
             if (gn_conn_list_push_back (&conn_list, new_conn) != 0)
             {
-                close (new_conn->fd);
+                gn_close (&new_conn->fd);
                 free (new_conn->saddr);
                 free (new_conn);
             }
@@ -80,8 +80,10 @@ gn_conn_mgmt_thrd (void * const p)
             atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPING, memory_order_relaxed);
             main_loop = false;
         }
-
-        sleep (1);
+        else
+        {
+            sleep (1);
+        }
     }
 
     atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPED, memory_order_relaxed);

@@ -54,7 +54,7 @@ gn_start_wrkr (const char * const path, int ipc_sock,
             };
             gn_send_serv_sock (raccept4, &final_serv_sock);
 
-            // close (raccept4); // TODO: Don't close IPC socket if no errors occured.
+            // gn_close (&raccept4); // TODO: Don't close IPC socket if no errors occured.
         }
     }
 }

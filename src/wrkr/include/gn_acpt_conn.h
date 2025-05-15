@@ -16,4 +16,7 @@ __attribute__((warn_unused_result))
 int
 gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_list_t * const list);
 
+int
+gn_close (int * const fd);
+
 #endif // GN_ACPT_CONN_H

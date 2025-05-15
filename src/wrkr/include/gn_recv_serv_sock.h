@@ -17,6 +17,9 @@ int
 gn_recv_serv_sock (const int ipc_sock, const int repoll_create1, gn_serv_sock_list_t * const serv_sock_list);
 
 int
+gn_close (int * const fd);
+
+int
 gn_serv_sock_list_push_back (gn_serv_sock_list_t * const list, gn_serv_sock_t * const sock);
 
 #endif // GN_RECV_SERV_SOCK_H

@@ -240,5 +240,5 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     gn_stop_conn_mgmt_thrds (&conn_mgmt_thrd_data_list);
 
     // Close the epoll instance created for server sockets.
-    close (repoll_create1);
+    gn_close (&repoll_create1);
 }

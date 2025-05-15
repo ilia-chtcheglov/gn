@@ -16,7 +16,7 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
         return 1;
     }
 
-    const int rsocket = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, IPPROTO_TCP);
+    int rsocket = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, IPPROTO_TCP);
     if (rsocket > -1)
     {
         printf ("Opened FD %i.\n", rsocket);
@@ -67,7 +67,7 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
             }
         }
 
-        close (rsocket);
+        gn_close (&rsocket);
     }
     else
     {

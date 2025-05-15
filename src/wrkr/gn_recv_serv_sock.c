@@ -185,7 +185,7 @@ gn_recv_serv_sock (const int ipc_sock, const int repoll_create1, gn_serv_sock_li
     }
 
     labl_exit:
-    close (serv_sock->fd);
+    gn_close (&serv_sock->fd);
     free (serv_sock->addr);
     free (serv_sock);
 
