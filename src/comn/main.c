@@ -21,6 +21,18 @@ main (const int argc,
         return EXIT_FAILURE;
     }
 
+    // Checking @argv.
+    if (argv[0] == NULL)
+    {
+        fprintf (stderr, "argv[0] should not be NULL but is.\n");
+        return EXIT_FAILURE;
+    }
+    if (argv[argc] != NULL)
+    {
+        fprintf (stderr, "argv[%i] should be NULL but is not.\n", argc);
+        return EXIT_FAILURE;
+    }
+
     /*
      * Contains the address of the Unix socket used for
      * IPC between the master process and the worker processes.
@@ -31,6 +43,12 @@ main (const int argc,
     // Parse command line arguments.
     for (int argi = 1; argi < argc; argi++)
     {
+        if (argv[argi] == NULL)
+        {
+            fprintf (stderr, "argv[%i] should not be NULL but is.\n", argi);
+            return EXIT_FAILURE;
+        }
+
         if (strcmp (argv[argi], "--ipc") == 0)
         {
             if (ipc_addr_str != NULL)
@@ -41,6 +59,11 @@ main (const int argc,
             if (++argi >= argc)
             {
                 fprintf (stderr, "Missing value after \"--ipc\" command line argument.\n");
+                return EXIT_FAILURE;
+            }
+            if (argv[argi] == NULL)
+            {
+                fprintf (stderr, "argv[%i] should not be NULL but is.\n", argi);
                 return EXIT_FAILURE;
             }
 
