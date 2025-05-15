@@ -10,14 +10,14 @@ main (const int argc,
         fprintf (stderr, "Negative number (%i) of command line arguments.\n", argc);
         return EXIT_FAILURE;
     }
-    if (argc < GN_MIN_CMDL_ARGS)
+    if (argc < GN_CMDL_ARGS_MIN)
     {
-        fprintf (stderr, "Number of command line arguments (%i) too low (minimum %i).\n", argc, GN_MIN_CMDL_ARGS);
+        fprintf (stderr, "Number of command line arguments (%i) too low (minimum %i).\n", argc, GN_CMDL_ARGS_MIN);
         return EXIT_FAILURE;
     }
-    if (argc > GN_MAX_CMDL_ARGS)
+    if (argc > GN_CMDL_ARGS_MAX)
     {
-        fprintf (stderr, "Number of command line arguments (%i) too high (maximum %i).\n", argc, GN_MAX_CMDL_ARGS);
+        fprintf (stderr, "Number of command line arguments (%i) too high (maximum %i).\n", argc, GN_CMDL_ARGS_MAX);
         return EXIT_FAILURE;
     }
 
