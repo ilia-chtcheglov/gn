@@ -7,12 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/un.h>
-#include <unistd.h>
 
 #include <gn_serv_sock_list_t.h>
 
 #define GN_CMDL_ARGS_MIN 1 // Minimum number of command line arguments.
 #define GN_CMDL_ARGS_MAX 8 // Maximum number of command line arguments.
+
+int
+gn_close (int * const fd);
 
 void
 gn_mstr_main (int ipc_sock,

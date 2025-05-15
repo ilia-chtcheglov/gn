@@ -112,8 +112,7 @@ main (const int argc,
     gn_close_serv_socks (&serv_sock_list);
 
     // Close the IPC socket.
-    close (ipc_sock);
-    ipc_sock = -1;
+    gn_close (&ipc_sock);
 
     return EXIT_SUCCESS;
 }
