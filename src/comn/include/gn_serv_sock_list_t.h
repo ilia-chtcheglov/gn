@@ -3,13 +3,11 @@
 
 #include <gn_serv_sock_t.h>
 
-typedef struct gn_serv_sock_list_t gn_serv_sock_list_t;
-
-struct gn_serv_sock_list_t
+typedef struct
 {
     gn_serv_sock_t * head;
     gn_serv_sock_t * tail;
     uint16_t         len;
-};
+} gn_serv_sock_list_t;
 
 #endif // GN_SERV_SOCK_LIST_T_H
