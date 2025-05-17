@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/epoll.h>
-#include <unistd.h>
 
 #include <gn_conn_acpt_thrd_data_list_t.h>
 #include <gn_conn_mgmt_thrd_data_list_t.h>
@@ -38,5 +37,11 @@ gn_start_conn_acpt_thrds (const uint8_t num,
 void
 gn_start_conn_mgmt_thrds (const uint8_t num,
                           gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list);
+
+void
+gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const list);
+
+void
+gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const list);
 
 #endif // GN_WRKR_MAIN_H
