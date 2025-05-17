@@ -9,7 +9,7 @@ gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const list)
         for (uint8_t i = 0; i < list->len; i++)
         {
             gn_conn_acpt_thrd_state_e state =
-                (gn_conn_acpt_thrd_state_e)atomic_load_explicit (&data->state, memory_order_relaxed);
+                (gn_conn_acpt_thrd_state_e)atomic_load_explicit (&data->state, memory_order_acquire);
             switch (state)
             {
                 case GN_CONN_ACPT_THRD_STATE_STARTING:
