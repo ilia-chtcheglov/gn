@@ -13,6 +13,7 @@ gn_conn_acpt_thrd (void * const p)
 {
     gn_conn_acpt_thrd_data_t * const data = (gn_conn_acpt_thrd_data_t *)p;
     atomic_store_explicit (&data->state, GN_CONN_ACPT_THRD_STATE_RUNNING, memory_order_relaxed);
+
     gn_conn_mgmt_thrd_data_list_t * const conn_mgmt_thrd_data_list = data->conn_mgmt_thrd_data_list;
     int repoll_create1 = data->repoll_create1;
 

@@ -34,6 +34,36 @@ gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn)
     return 0;
 }
 
+void
+gn_conn_list_remove (gn_conn_list_t * const list,
+                     gn_conn_t * const conn);
+
+void
+gn_conn_list_remove (gn_conn_list_t * const list,
+                     gn_conn_t * const conn)
+{
+    switch (list->len)
+    {
+        case 0:
+            return;
+        case 1:
+        {
+            list->head = list->tail = NULL;
+            break;
+        }
+        default:
+        {
+            conn->prev->next = conn->next;
+            conn->next->prev = conn->prev;
+            if (conn == list->head) list->head = conn->next;
+            else if (conn == list->tail) list->tail = conn->prev;
+        }
+    }
+
+    list->len--;
+    return;
+}
+
 void *
 gn_conn_mgmt_thrd (void * const p)
 {
@@ -43,11 +73,13 @@ gn_conn_mgmt_thrd (void * const p)
     gn_conn_list_t conn_list;
     memset (&conn_list, 0, sizeof (conn_list));
 
+    bool stop = false;
     bool main_loop = true;
     while (main_loop)
     {
         gn_conn_t * conn = conn_list.head;
-        for (uint32_t i = 0; i < conn_list.len; conn = conn->next, i++)
+        gn_conn_t * next_conn = NULL;
+        for (uint32_t i = 0; i < conn_list.len; i++)
         {
             // Test code.
             char buf[1024];
@@ -58,6 +90,24 @@ gn_conn_mgmt_thrd (void * const p)
                 buf[buf_len] = '\0';
                 printf ("Received (%lu) \"%s\"\n", buf_len, buf);
             }
+
+            if (stop)
+            {
+                gn_conn_list_remove (&conn_list, conn);
+                if (conn_list.len > 0) next_conn = conn->next;
+                else next_conn = NULL;
+
+                gn_close (&conn->fd);
+                free (conn->saddr);
+                free (conn);
+                conn = NULL;
+            }
+            else
+            {
+                next_conn = conn->next;
+            }
+
+            conn = next_conn;
         }
 
         for (int8_t i = sizeof (data->new_conns) / sizeof (atomic_uintptr_t) - 1; i > -1 ; i--)
@@ -65,7 +115,7 @@ gn_conn_mgmt_thrd (void * const p)
             if (data->new_conns[i] == (uintptr_t)NULL) continue;
 
             gn_conn_t * const new_conn = (gn_conn_t *)data->new_conns[i];
-            if (gn_conn_list_push_back (&conn_list, new_conn) != 0)
+            if (stop || gn_conn_list_push_back (&conn_list, new_conn) != 0)
             {
                 gn_close (&new_conn->fd);
                 free (new_conn->saddr);
@@ -74,16 +124,17 @@ gn_conn_mgmt_thrd (void * const p)
             data->new_conns[i] = (uintptr_t)NULL;
         }
 
-        if (atomic_load_explicit (&data->stop, memory_order_relaxed))
+        if (!stop)
         {
-            printf ("Connection management thread %lu stopping.\n", data->tid);
-            atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPING, memory_order_relaxed);
-            main_loop = false;
+            if (atomic_load_explicit (&data->stop, memory_order_relaxed))
+            {
+                printf ("Connection management thread %lu stopping.\n", data->tid);
+                atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPING, memory_order_relaxed);
+                stop = true;
+            }
+            else sleep (1);
         }
-        else
-        {
-            sleep (1);
-        }
+        else if (conn_list.len == 0) break;
     }
 
     atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPED, memory_order_relaxed);
