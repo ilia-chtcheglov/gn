@@ -8,6 +8,11 @@ gn_close (int * const fd)
         errno = EINVAL;
         return -1;
     }
+    if (*fd < 0)
+    {
+        errno = EBADF;
+        return -1;
+    }
 
     const int rclose = close (*fd);
     *fd = -1;
