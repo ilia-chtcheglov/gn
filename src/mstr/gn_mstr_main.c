@@ -325,7 +325,11 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 
                 for (uint8_t i = 0; i < repoll_wait; i++)
                 {
-                    // const gn_wrkr_data_t * const wrkr_data = (gn_wrkr_data_t *)epoll_evts[i].data.ptr;
+                    const gn_wrkr_data_t * const wrkr_data = (gn_wrkr_data_t *)epoll_evts[i].data.ptr;
+                    if (epoll_evts[i].events & EPOLLHUP)
+                    {
+                        printf ("Worker %i disconnected.\n", wrkr_data->pid);
+                    }
                 }
             }
         }
