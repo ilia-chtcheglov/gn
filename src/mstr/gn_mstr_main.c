@@ -266,4 +266,6 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         if (sigint_rcvd) break;
         sleep (1);
     }
+
+    gn_stop_wrkrs (&wrkr_data_list);
 }

@@ -22,6 +22,8 @@ mstr_files = files(
     'src/mstr/gn_send_serv_sock.c',
     'src/mstr/gn_start_wrkr.c',
     'src/mstr/gn_start_wrkrs.c',
+    'src/mstr/gn_stop_wrkrs.c',
+    'src/mstr/gn_wrkr_data_list_pop.c',
     'src/mstr/gn_wrkr_data_list_push_back.c'
 )
 
