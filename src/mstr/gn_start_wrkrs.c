@@ -19,6 +19,18 @@ gn_start_wrkrs (gn_wrkr_data_list_t * const wrkr_data_list, const uint8_t num_wo
             continue;
         }
 
-        gn_start_wrkr (wrkr_data, path, ipc_sock, ipc_addr_str, serv_sock_list);
+        wrkr_data->ipc_sock = -1;
+        wrkr_data->pid = -1;
+
+        if (gn_start_wrkr (wrkr_data, path, ipc_sock, ipc_addr_str, serv_sock_list) != EXIT_SUCCESS)
+        {
+            free (wrkr_data);
+            wrkr_data = NULL;
+            continue;
+        }
+
+        printf ("Worker PID: %i, IPC socket: %i.\n", wrkr_data->pid, wrkr_data->ipc_sock);
+        // gn_wrkr_data_list_push_back (wrkr_data_list, wrkr_data);
+        wrkr_data = NULL;
     }
 }
