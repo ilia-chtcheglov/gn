@@ -233,6 +233,14 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         printf ("Server socket .fd: %i, .addr: [%s], .port: %i.\n", serv_sock->fd, serv_sock->addr, serv_sock->port);
     }
 
+    // Create an epoll instance for workers.
+    int repoll_create1 = epoll_create1 (EPOLL_CLOEXEC);
+    if (repoll_create1 < 0)
+    {
+        fprintf (stderr, "Failed to create workers epoll instance. %s.\n", strerror (errno));
+        return;
+    }
+
     // List of worker data structures (PID, IPC socket, etc).
     gn_wrkr_data_list_t wrkr_data_list;
     memset (&wrkr_data_list, 0, sizeof (gn_wrkr_data_list_t));
@@ -256,7 +264,8 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         default:
         {
             // Start worker processes.
-            gn_start_wrkrs (&wrkr_data_list, mstr_conf.workers, self_path, ipc_sock, sun.sun_path, serv_sock_list);
+            gn_start_wrkrs (&wrkr_data_list, repoll_create1, mstr_conf.workers, self_path,
+                            ipc_sock, sun.sun_path, serv_sock_list);
         }
     }
 
@@ -267,5 +276,8 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         sleep (1);
     }
 
+    // Stop worker processes.
     gn_stop_wrkrs (&wrkr_data_list);
+
+    gn_close (&repoll_create1);
 }

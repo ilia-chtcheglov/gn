@@ -2,7 +2,7 @@
 
 __attribute__((warn_unused_result))
 bool
-gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock,
+gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const int repoll_create1, const char * const path, int ipc_sock,
                const char * const ipc_addr_str, gn_serv_sock_list_t * const serv_sock_list)
 {
     printf ("Starting worker process.\n");
@@ -34,30 +34,48 @@ gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock
         case -1:
         {
             fprintf (stderr, "Failed to fork master process. %s.\n", strerror (errno));
-            return EXIT_FAILURE;
+            break;
         }
         default: // Parent.
         {
             const int raccept4 = gn_ipc_acpt (ipc_sock);
-            if (raccept4 < 0) return EXIT_FAILURE;
-
-            // Send configuration, server sockets, etc. to the worker process.
-            gn_serv_sock_t * serv_sock = serv_sock_list->head;
-            for (size_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
-            {
-                gn_send_serv_sock (raccept4, serv_sock);
-            }
-
-            gn_serv_sock_t final_serv_sock = {
-                .fd = 0,
-                .addr = NULL,
-                .port = 0
-            };
-            gn_send_serv_sock (raccept4, &final_serv_sock);
+            if (raccept4 < 0) break;
 
             wrkr_data->ipc_sock = raccept4;
             wrkr_data->pid = rfork;
-            return EXIT_SUCCESS;
+
+            // Add worker IPC socket to epoll instance.
+            struct epoll_event epoll_evt;
+            memset (&epoll_evt, 0, sizeof (epoll_evt));
+            epoll_evt.events = EPOLLIN | EPOLLRDHUP;
+            epoll_evt.data.ptr = wrkr_data;
+
+            const int repoll_ctl = epoll_ctl (repoll_create1, EPOLL_CTL_ADD, raccept4, &epoll_evt);
+            if (repoll_ctl == 0)
+            {
+                // Send configuration, server sockets, etc. to the worker process.
+                gn_serv_sock_t * serv_sock = serv_sock_list->head;
+                for (size_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
+                {
+                    gn_send_serv_sock (raccept4, serv_sock);
+                }
+
+                gn_serv_sock_t final_serv_sock = {
+                    .fd = 0,
+                    .addr = NULL,
+                    .port = 0
+                };
+                gn_send_serv_sock (raccept4, &final_serv_sock);
+
+                // TODO: Remove IPC socket from epoll instance on error and return EXIT_FAILURE.
+                return EXIT_SUCCESS;
+            }
+            else
+            {
+                fprintf (stderr, "Failed to add worker IPC socket to epoll instance. %s.\n", strerror (errno));
+            }
         }
     }
+
+    return EXIT_FAILURE;
 }
