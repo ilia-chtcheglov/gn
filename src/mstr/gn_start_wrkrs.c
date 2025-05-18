@@ -30,7 +30,11 @@ gn_start_wrkrs (gn_wrkr_data_list_t * const wrkr_data_list, const uint8_t num_wo
         }
 
         printf ("Worker PID: %i, IPC socket: %i.\n", wrkr_data->pid, wrkr_data->ipc_sock);
-        // gn_wrkr_data_list_push_back (wrkr_data_list, wrkr_data);
+        /*
+         * No need to check return value. This function returns an error
+         * if the list is full. The error check was done above.
+         */
+        (void)! gn_wrkr_data_list_push_back (wrkr_data_list, wrkr_data);
         wrkr_data = NULL;
     }
 }

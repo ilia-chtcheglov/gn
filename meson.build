@@ -1,6 +1,7 @@
 project('gn', 'c', version: '1.0.0')
 
 c_flags = [
+    '-g',
     '-Werror',
     '-Wno-padded',
     '-D_GNU_SOURCE'
@@ -20,7 +21,8 @@ mstr_files = files(
     'src/mstr/gn_open_serv_sock.c',
     'src/mstr/gn_send_serv_sock.c',
     'src/mstr/gn_start_wrkr.c',
-    'src/mstr/gn_start_wrkrs.c'
+    'src/mstr/gn_start_wrkrs.c',
+    'src/mstr/gn_wrkr_data_list_push_back.c'
 )
 
 wrkr_files = files(
