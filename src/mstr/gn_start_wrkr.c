@@ -1,8 +1,8 @@
 #include <gn_start_wrkr.h>
 
 void
-gn_start_wrkr (const char * const path, int ipc_sock,
-               const char * const ipc_addr_str, gn_serv_sock_list_t * const list)
+gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock,
+               const char * const ipc_addr_str, gn_serv_sock_list_t * const serv_sock_list)
 {
     printf ("Starting worker process.\n");
     // Fork the master process to start a worker process.
@@ -41,8 +41,8 @@ gn_start_wrkr (const char * const path, int ipc_sock,
             if (raccept4 < 0) return;
 
             // Send configuration, server sockets, etc. to the worker process.
-            gn_serv_sock_t * serv_sock = list->head;
-            for (size_t i = 0; i < list->len; serv_sock = serv_sock->next, i++)
+            gn_serv_sock_t * serv_sock = serv_sock_list->head;
+            for (size_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
             {
                 gn_send_serv_sock (raccept4, serv_sock);
             }
@@ -54,7 +54,8 @@ gn_start_wrkr (const char * const path, int ipc_sock,
             };
             gn_send_serv_sock (raccept4, &final_serv_sock);
 
-            // gn_close (&raccept4); // TODO: Don't close IPC socket if no errors occured.
+            wrkr_data->ipc_sock = raccept4;
+            wrkr_data->pid = rfork;
         }
     }
 }
