@@ -2,6 +2,7 @@
 #define GN_START_WRKR_H
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,8 @@
 #include <gn_serv_sock_list_t.h>
 #include <gn_wrkr_data_t.h>
 
-void
+__attribute__((warn_unused_result))
+bool
 gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock,
                const char * const ipc_addr_str, gn_serv_sock_list_t * const list);
 

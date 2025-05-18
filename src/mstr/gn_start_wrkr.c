@@ -1,6 +1,7 @@
 #include <gn_start_wrkr.h>
 
-void
+__attribute__((warn_unused_result))
+bool
 gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock,
                const char * const ipc_addr_str, gn_serv_sock_list_t * const serv_sock_list)
 {
@@ -33,12 +34,12 @@ gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock
         case -1:
         {
             fprintf (stderr, "Failed to fork master process. %s.\n", strerror (errno));
-            break;
+            return EXIT_FAILURE;
         }
         default: // Parent.
         {
             const int raccept4 = gn_ipc_acpt (ipc_sock);
-            if (raccept4 < 0) return;
+            if (raccept4 < 0) return EXIT_FAILURE;
 
             // Send configuration, server sockets, etc. to the worker process.
             gn_serv_sock_t * serv_sock = serv_sock_list->head;
@@ -56,6 +57,7 @@ gn_start_wrkr (gn_wrkr_data_t * wrkr_data, const char * const path, int ipc_sock
 
             wrkr_data->ipc_sock = raccept4;
             wrkr_data->pid = rfork;
+            return EXIT_SUCCESS;
         }
     }
 }
