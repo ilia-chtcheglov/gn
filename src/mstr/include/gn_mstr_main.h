@@ -32,4 +32,8 @@ gn_start_wrkrs (gn_wrkr_data_list_t * const wrkr_data_list, const int repoll_cre
 void
 gn_stop_wrkrs (gn_wrkr_data_list_t * const list);
 
+void
+gn_wrkr_data_list_remove (gn_wrkr_data_list_t * const list,
+                          const gn_wrkr_data_t * const data);
+
 #endif // GN_MSTR_MAIN_H

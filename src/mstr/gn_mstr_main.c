@@ -325,10 +325,39 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 
                 for (uint8_t i = 0; i < repoll_wait; i++)
                 {
-                    const gn_wrkr_data_t * const wrkr_data = (gn_wrkr_data_t *)epoll_evts[i].data.ptr;
+                    gn_wrkr_data_t * wrkr_data = (gn_wrkr_data_t *)epoll_evts[i].data.ptr;
+                    // Detect loss of IPC connection with the worker process.
                     if (epoll_evts[i].events & EPOLLHUP)
                     {
                         printf ("Worker %i disconnected.\n", wrkr_data->pid);
+
+                        // Remove the worker IPC socket from the epoll instance.
+                        const int repoll_ctl = epoll_ctl (repoll_create1, EPOLL_CTL_DEL, wrkr_data->ipc_sock, NULL);
+                        switch (repoll_ctl)
+                        {
+                            case 0:
+                            {
+                                // Close the worker IPC socket.
+                                gn_close (&wrkr_data->ipc_sock);
+
+                                // Remove the worker data structure from the list.
+                                gn_wrkr_data_list_remove (&wrkr_data_list, wrkr_data);
+                                free (wrkr_data);
+                                wrkr_data = NULL;
+                                break;
+                            }
+                            case -1:
+                            {
+                                fprintf (stderr, "Failed to remove worker IPC socket from epoll instance. %s.\n",
+                                         strerror (errno));
+                                // TODO: Check errno.
+                                break;
+                            }
+                            default:
+                            {
+                                fprintf (stderr, "epoll_ctl() returned unexpected value %i.\n", repoll_ctl);
+                            }
+                        }
                     }
                 }
             }
