@@ -120,21 +120,6 @@ gn_load_mstr_conf (gn_mstr_conf_t * const mstr_conf)
 }
 
 void
-gn_start_wrkrs (const uint8_t num_workers, const char * const path, int ipc_sock,
-                const char * const ipc_addr_str, gn_serv_sock_list_t * const list);
-
-void
-gn_start_wrkrs (const uint8_t num_workers, const char * const path, int ipc_sock,
-                const char * const ipc_addr_str, gn_serv_sock_list_t * const list)
-{
-    printf ("Starting %i worker(s).\n", num_workers);
-    for (uint8_t i = 0; i < num_workers; i++)
-    {
-        gn_start_wrkr (path, ipc_sock, ipc_addr_str, list);
-    }
-}
-
-void
 gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
     // TODO: Use sigaction() instead of signal().

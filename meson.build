@@ -19,7 +19,8 @@ mstr_files = files(
     'src/mstr/gn_mstr_main.c',
     'src/mstr/gn_open_serv_sock.c',
     'src/mstr/gn_send_serv_sock.c',
-    'src/mstr/gn_start_wrkr.c'
+    'src/mstr/gn_start_wrkr.c',
+    'src/mstr/gn_start_wrkrs.c'
 )
 
 wrkr_files = files(
