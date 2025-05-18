@@ -1,5 +1,5 @@
-#ifndef GN_MSTR_MAIN_H
-#define GN_MSTR_MAIN_H
+#ifndef GN_MSTR_INIT_H
+#define GN_MSTR_INIT_H
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -17,7 +17,7 @@
 #include <gn_wrkr_data_list_t.h>
 
 void
-gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
+gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
 
 int
 gn_close (int * const fd);
@@ -46,4 +46,4 @@ void
 gn_wrkr_data_list_remove (gn_wrkr_data_list_t * const list,
                           const gn_wrkr_data_t * const data);
 
-#endif // GN_MSTR_MAIN_H
+#endif // GN_MSTR_INIT_H

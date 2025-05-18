@@ -1,4 +1,4 @@
-#include <gn_mstr_main.h>
+#include <gn_mstr_init.h>
 
 bool sigint_rcvd = false;
 
@@ -14,7 +14,7 @@ gn_sigint_handler (const int signum)
 }
 
 void
-gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
+gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
     // TODO: Use sigaction() instead of signal().
     if (signal (SIGINT, gn_sigint_handler) == SIG_ERR)

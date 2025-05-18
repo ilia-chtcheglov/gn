@@ -105,7 +105,7 @@ main (const int argc,
     gn_serv_sock_list_t serv_sock_list;
     memset (&serv_sock_list, 0, sizeof (gn_serv_sock_list_t));
 
-    if (ipc_addr_str == NULL) gn_mstr_main (ipc_sock, &serv_sock_list);
+    if (ipc_addr_str == NULL) gn_mstr_init (ipc_sock, &serv_sock_list);
     else gn_wrkr_main (ipc_sock, &serv_sock_list, ipc_addr_str);
 
     // Close server sockets.
