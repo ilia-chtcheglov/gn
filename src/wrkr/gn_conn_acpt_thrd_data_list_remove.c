@@ -23,5 +23,4 @@ gn_conn_acpt_thrd_data_list_remove (gn_conn_acpt_thrd_data_list_t * const list,
     }
 
     list->len--;
-    return;
 }

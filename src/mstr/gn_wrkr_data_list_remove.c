@@ -23,5 +23,4 @@ gn_wrkr_data_list_remove (gn_wrkr_data_list_t * const list,
     }
 
     list->len--;
-    return;
 }
