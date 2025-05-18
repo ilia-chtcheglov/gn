@@ -233,6 +233,10 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         printf ("Server socket .fd: %i, .addr: [%s], .port: %i.\n", serv_sock->fd, serv_sock->addr, serv_sock->port);
     }
 
+    // List of worker data structures (PID, IPC socket, etc).
+    gn_wrkr_data_list_t wrkr_data_list;
+    memset (&wrkr_data_list, 0, sizeof (gn_wrkr_data_list_t));
+
     // Detect the absolute path of the program.
     char self_path[1024];
     memset (self_path, 0, sizeof (self_path));
@@ -252,7 +256,7 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
         default:
         {
             // Start worker processes.
-            gn_start_wrkrs (mstr_conf.workers, self_path, ipc_sock, sun.sun_path, serv_sock_list);
+            gn_start_wrkrs (&wrkr_data_list, mstr_conf.workers, self_path, ipc_sock, sun.sun_path, serv_sock_list);
         }
     }
 
