@@ -339,11 +339,19 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
                             {
                                 // Close the worker IPC socket.
                                 gn_close (&wrkr_data->ipc_sock);
+                                wrkr_data->pid = -1;
+                                wrkr_data->prev = NULL;
+                                wrkr_data->next = NULL;
 
-                                // Remove the worker data structure from the list.
-                                gn_wrkr_data_list_remove (&wrkr_data_list, wrkr_data);
-                                free (wrkr_data);
-                                wrkr_data = NULL;
+                                // Start a new worker process.
+                                if (gn_start_wrkr (wrkr_data, repoll_create1, self_path,
+                                                   ipc_sock, sun.sun_path, serv_sock_list) != EXIT_SUCCESS)
+                                {
+                                    // Remove the worker data structure from the list.
+                                    gn_wrkr_data_list_remove (&wrkr_data_list, wrkr_data);
+                                    free (wrkr_data);
+                                    wrkr_data = NULL;
+                                }
                                 break;
                             }
                             case -1:
