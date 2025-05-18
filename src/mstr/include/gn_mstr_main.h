@@ -6,11 +6,13 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/epoll.h>
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
 
+#include <gn_mstr_conf_t.h>
 #include <gn_serv_sock_list_t.h>
 #include <gn_wrkr_data_list_t.h>
 
@@ -19,6 +21,9 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
 
 int
 gn_close (int * const fd);
+
+void
+gn_load_mstr_conf (gn_mstr_conf_t * const mstr_conf);
 
 __attribute__((warn_unused_result))
 int
