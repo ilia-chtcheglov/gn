@@ -340,8 +340,7 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
                                 // Close the worker IPC socket.
                                 gn_close (&wrkr_data->ipc_sock);
                                 wrkr_data->pid = -1;
-                                wrkr_data->prev = NULL;
-                                wrkr_data->next = NULL;
+                                // Don't change wrkr_data->prev/next.
 
                                 // Start a new worker process.
                                 if (gn_start_wrkr (wrkr_data, repoll_create1, self_path,
