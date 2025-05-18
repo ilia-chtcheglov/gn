@@ -20,7 +20,7 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     if (gn_recv_serv_socks (ipc_sock, repoll_create1, serv_sock_list) != 1)
     {
         fprintf (stderr, "Error occured while receiving server sockets data.\n");
-        return;
+        goto labl_gn_recv_serv_socks_failed;
     }
 
     // List of structures, one for each connection management thread.
@@ -86,6 +86,7 @@ gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const ch
     printf ("Stopping connection management threads.\n");
     gn_stop_conn_mgmt_thrds (&conn_mgmt_thrd_data_list);
 
+    labl_gn_recv_serv_socks_failed:
     // Close the epoll instance created for server sockets.
     gn_close (&repoll_create1);
 }
