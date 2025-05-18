@@ -51,7 +51,7 @@ gn_acpt_conns (int * const repoll_create1, gn_conn_mgmt_thrd_data_list_t * const
 
             for (unsigned int i = 0; i < (unsigned int)repoll_wait; i++)
             {
-                const struct gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)epoll_evts[i].data.ptr;
+                const gn_serv_sock_t * const serv_sock = (gn_serv_sock_t *)epoll_evts[i].data.ptr;
                 if (gn_acpt_conn (serv_sock, list) == EXIT_FAILURE) return EXIT_FAILURE;
             }
         }
