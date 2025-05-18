@@ -270,10 +270,65 @@ gn_mstr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     }
 
     // Main loop.
-    while (true)
+    bool main_loop = true;
+    while (main_loop)
     {
         if (sigint_rcvd) break;
-        sleep (1);
+        
+        struct epoll_event epoll_evts[UINT8_MAX];
+        memset (epoll_evts, 0, sizeof (epoll_evts));
+
+        const int repoll_wait = epoll_wait (repoll_create1, epoll_evts,
+                                            sizeof (epoll_evts) / sizeof (struct epoll_event), 1000);
+        switch (repoll_wait)
+        {
+            case 0:
+            {
+                // Timeout.
+                break;
+            }
+            case -1:
+            {
+                switch (errno)
+                {
+                    case EINTR:
+                        break;
+                    case EBADF:
+                    case EINVAL:
+                    {
+                        repoll_create1 = -1;
+                        __attribute__((fallthrough));
+                    }
+                    case EFAULT:
+                    {
+                        fprintf (stderr, "epoll_wait() failed. %s.\n", strerror (errno));
+                        main_loop = false;
+                        break;
+                    }
+                    default:
+                    {
+                        fprintf (stderr, "epoll_wait() returned undocumented errno code %i.\n", errno);
+                        main_loop = false;
+                        break;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                if (repoll_wait < -1)
+                {
+                    fprintf (stderr, "epoll_wait() returned unexpected value %i.\n", repoll_wait);
+                    main_loop = false;
+                    break;
+                }
+
+                for (uint8_t i = 0; i < repoll_wait; i++)
+                {
+                    // const gn_wrkr_data_t * const wrkr_data = (gn_wrkr_data_t *)epoll_evts[i].data.ptr;
+                }
+            }
+        }
     }
 
     // Stop worker processes.
