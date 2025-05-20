@@ -21,7 +21,7 @@ gn_mstr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list);
 
 void
-gn_wrkr_main (int ipc_sock,
+gn_wrkr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list,
               const char * const ipc_addr_str);
 

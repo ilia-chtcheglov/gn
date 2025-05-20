@@ -1,5 +1,5 @@
-#ifndef GN_WRKR_MAIN_H
-#define GN_WRKR_MAIN_H
+#ifndef GN_WRKR_INIT_H
+#define GN_WRKR_INIT_H
 
 #include <errno.h>
 #include <poll.h>
@@ -15,7 +15,7 @@
 #include <gn_serv_sock_list_t.h>
 
 void
-gn_wrkr_main (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str);
+gn_wrkr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str);
 
 int
 gn_close (int * const fd);
@@ -44,4 +44,4 @@ gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const list);
 void
 gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const list);
 
-#endif // GN_WRKR_MAIN_H
+#endif // GN_WRKR_INIT_H
