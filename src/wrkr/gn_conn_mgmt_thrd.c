@@ -154,7 +154,15 @@ gn_conn_mgmt_thrd (void * const p)
                 atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPING, memory_order_release);
                 stop = true;
             }
-            else sleep (1);
+            else
+            {
+                const struct timespec ts = {
+                    .tv_sec = 0,
+                    .tv_nsec = 100 * 1000000 // 100ms
+                };
+                /* const int rclock_nanosleep = */ clock_nanosleep (CLOCK_MONOTONIC, 0, &ts, NULL);
+                // TODO: Check rclock_nanosleep.
+            }
         }
         else if (conn_list.len == 0)
         {
