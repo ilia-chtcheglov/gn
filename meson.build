@@ -46,7 +46,8 @@ wrkr_files = files(
     'src/wrkr/gn_start_conn_mgmt_thrds.c',
     'src/wrkr/gn_stop_conn_acpt_thrds.c',
     'src/wrkr/gn_stop_conn_mgmt_thrds.c',
-    'src/wrkr/gn_wrkr_init.c'
+    'src/wrkr/gn_wrkr_init.c',
+    'src/wrkr/gn_wrkr_main.c'
 )
 
 all_files = comn_files + mstr_files + wrkr_files

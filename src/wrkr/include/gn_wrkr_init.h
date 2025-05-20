@@ -2,9 +2,7 @@
 #define GN_WRKR_INIT_H
 
 #include <errno.h>
-#include <poll.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,5 +41,8 @@ gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const list);
 
 void
 gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const list);
+
+void
+gn_wrkr_main (const int ipc_sock);
 
 #endif // GN_WRKR_INIT_H
