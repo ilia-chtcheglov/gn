@@ -15,6 +15,8 @@ gn_start_conn_mgmt_thrds (const uint8_t num, gn_conn_mgmt_thrd_data_list_t * con
 
         atomic_store_explicit (&data->stop, false, memory_order_relaxed);
         atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STARTING, memory_order_relaxed);
+        atomic_flag_clear (&data->no_new_conn); // Initialize (set to false).
+        atomic_flag_test_and_set (&data->no_new_conn); // Set to true.
 
         const int rpthread_create = pthread_create (&data->tid, NULL, gn_conn_mgmt_thrd, data);
         switch (rpthread_create)

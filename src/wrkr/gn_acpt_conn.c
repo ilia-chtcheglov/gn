@@ -89,7 +89,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     conn->sport = sport;
 
     // Pass the structure to a connection management thread.
-    const gn_conn_mgmt_thrd_data_t * data = list->head;
+    gn_conn_mgmt_thrd_data_t * data = list->head;
     for (uint8_t i = 0; i < list->len; data = data->next, i++)
     {
         for (uint8_t j = 0; j < sizeof (data->new_conns) / sizeof (atomic_uintptr_t); j++)
@@ -98,6 +98,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
             if (atomic_compare_exchange_strong_explicit (&data->new_conns[j], &expected, (uintptr_t)conn,
                                                          memory_order_relaxed, memory_order_relaxed))
             {
+                atomic_flag_clear (&data->no_new_conn);
                 return EXIT_SUCCESS;
             }
         }
