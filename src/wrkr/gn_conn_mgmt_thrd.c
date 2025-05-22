@@ -6,63 +6,8 @@
 int
 gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn);
 
-int
-gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn)
-{
-    switch (list->len)
-    {
-        case 0:
-        {
-            list->head = list->tail = conn->prev = conn->next = conn;
-            break;
-        }
-        case UINT32_MAX:
-        {
-            return 1;
-        }
-        default:
-        {
-            list->tail->next = conn;
-            conn->prev = list->tail;
-            list->head->prev = conn;
-            conn->next = list->head;
-            list->tail = conn;
-        }
-    }
-
-    list->len++;
-    return 0;
-}
-
 void
-gn_conn_list_remove (gn_conn_list_t * const list,
-                     gn_conn_t * const conn);
-
-void
-gn_conn_list_remove (gn_conn_list_t * const list,
-                     gn_conn_t * const conn)
-{
-    switch (list->len)
-    {
-        case 0:
-            return;
-        case 1:
-        {
-            list->head = list->tail = NULL;
-            break;
-        }
-        default:
-        {
-            conn->prev->next = conn->next;
-            conn->next->prev = conn->prev;
-            if (conn == list->head) list->head = conn->next;
-            else if (conn == list->tail) list->tail = conn->prev;
-        }
-    }
-
-    list->len--;
-    return;
-}
+gn_conn_list_remove (gn_conn_list_t * const list, gn_conn_t * const conn);
 
 void *
 gn_conn_mgmt_thrd (void * const p)
