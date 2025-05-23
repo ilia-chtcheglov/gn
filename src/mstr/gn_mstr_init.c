@@ -39,6 +39,12 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
             fprintf (stderr, "Invalid virtual host configuration file name \".conf\".\n");
             break;
         }
+        if (strlen (ent->d_name) < 6 ||
+            strcmp (&ent->d_name[strlen (ent->d_name) - 5], ".conf") != 0)
+        {
+            fprintf (stderr, "Virtual host configuration file \"%s\" doesn't end with \".conf\".\n", ent->d_name);
+            break;
+        }
 
         printf ("d_name == \"%s\"\n", ent->d_name); // TODO: Remove.
         char * path = (char *)malloc (strlen (GN_VHSTS_CONF_DIR_PATH) + strlen (ent->d_name) + 1);
