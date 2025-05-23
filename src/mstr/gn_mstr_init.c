@@ -34,6 +34,11 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
     while ((ent = readdir (ropendir)) != NULL)
     {
         if (strcmp (ent->d_name, ".") == 0 || strcmp (ent->d_name, "..") == 0) continue;
+        if (strcmp (ent->d_name, ".conf") == 0)
+        {
+            fprintf (stderr, "Invalid virtual host configuration file name \".conf\".\n");
+            break;
+        }
 
         printf ("d_name == \"%s\"\n", ent->d_name); // TODO: Remove.
         char * path = (char *)malloc (strlen (GN_VHSTS_CONF_DIR_PATH) + strlen (ent->d_name) + 1);
