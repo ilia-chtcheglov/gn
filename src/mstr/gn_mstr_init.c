@@ -10,6 +10,10 @@ struct gn_vhst_conf_list_t
 
 #include <dirent.h>
 
+#include <json-c/json.h>
+
+#define GN_VHSTS_CONF_DIR_PATH "/etc/gn/vhosts/enabled/"
+
 void
 gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list);
 
@@ -18,7 +22,7 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
 {
     (void)vhst_conf_list; // TODO: Remove.
 
-    DIR * ropendir = opendir ("/etc/gn/vhosts/enabled");
+    DIR * ropendir = opendir (GN_VHSTS_CONF_DIR_PATH);
     if (ropendir == NULL)
     {
         fprintf (stderr, "Failed to open virtual hosts configuration directory. %s.\n", strerror (errno));
@@ -32,6 +36,30 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
         if (strcmp (ent->d_name, ".") == 0 || strcmp (ent->d_name, "..") == 0) continue;
 
         printf ("d_name == \"%s\"\n", ent->d_name); // TODO: Remove.
+        char * path = (char *)malloc (strlen (GN_VHSTS_CONF_DIR_PATH) + strlen (ent->d_name) + 1);
+        if (path == NULL)
+        {
+            // TODO: Display error message.
+            continue;
+        }
+
+        strcpy (path, GN_VHSTS_CONF_DIR_PATH);
+        strcat (path, ent->d_name);
+
+        json_object * root = json_object_from_file (path);
+        if (root == NULL)
+        {
+            fprintf (stderr, "Failed to parse virtual host configuration file \"%s\".\n", path);
+            free (path);
+            path = NULL;
+            continue;
+        }
+
+        json_object_put (root);
+        root = NULL;
+
+        free (path);
+        path = NULL;
     }
 
     if (errno != 0)
