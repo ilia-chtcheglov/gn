@@ -1,5 +1,51 @@
 #include <gn_mstr_init.h>
 
+typedef struct gn_vhst_conf_list_t gn_vhst_conf_list_t;
+
+struct gn_vhst_conf_list_t
+{
+    gn_vhst_conf_list_t * prev;
+    gn_vhst_conf_list_t * next;
+};
+
+#include <dirent.h>
+
+void
+gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list);
+
+void
+gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
+{
+    (void)vhst_conf_list; // TODO: Remove.
+
+    DIR * ropendir = opendir ("/etc/gn/vhosts/enabled");
+    if (ropendir == NULL)
+    {
+        fprintf (stderr, "Failed to open virtual hosts configuration directory. %s.\n", strerror (errno));
+        return;
+    }
+
+    errno = 0;
+    struct dirent * ent = NULL;
+    while ((ent = readdir (ropendir)) != NULL)
+    {
+        if (strcmp (ent->d_name, ".") == 0 || strcmp (ent->d_name, "..") == 0) continue;
+
+        printf ("d_name == \"%s\"\n", ent->d_name); // TODO: Remove.
+    }
+
+    if (errno != 0)
+    {
+        fprintf (stderr, "Error while reading virtual hosts configuration directory. %s.\n", strerror (errno));
+        // TODO: if (errno == XYZ)...
+        ropendir = NULL;
+    }
+
+    // TODO: Check closedir() return value and errno.
+    closedir (ropendir);
+    ropendir = NULL;
+}
+
 bool sigint_rcvd = false;
 
 void
@@ -113,6 +159,10 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     mstr_conf.connection_management_threads = 1;
 
     gn_load_mstr_conf (&mstr_conf);
+
+    gn_vhst_conf_list_t vhst_conf_list;
+    memset (&vhst_conf_list, 0, sizeof (vhst_conf_list));
+    gn_load_vhsts_conf (&vhst_conf_list);
 
     // Open server sockets.
     int rgn_open_serv_sock = gn_open_serv_sock (serv_sock_list, "0.0.0.0", 8080);
