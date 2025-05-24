@@ -102,11 +102,25 @@ gn_sigint_handler (const int signum)
 void
 gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
-    // TODO: Use sigaction() instead of signal().
-    if (signal (SIGINT, gn_sigint_handler) == SIG_ERR)
+    struct sigaction sa;
+    memset (&sa, 0, sizeof (sa));
+    sa.sa_handler = gn_sigint_handler;
+
+    const int rsigaction = sigaction (SIGINT, &sa, NULL);
+    switch (rsigaction)
     {
-        fprintf (stderr, "Failed to set SIGINT handler.\n");
-        return;
+        case 0:
+            break;
+        case -1:
+        {
+            fprintf (stderr, "Failed to set SIGINT handler. %s.\n", strerror (errno));
+            return;
+        }
+        default:
+        {
+            fprintf (stderr, "sigaction() returned undocumented value %i.\n", rsigaction);
+            return;
+        }
     }
 
     // Get current time to generate a path for the IPC socket.
