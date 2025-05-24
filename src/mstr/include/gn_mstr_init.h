@@ -33,6 +33,10 @@ __attribute__((warn_unused_result))
 int
 gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, const uint16_t port);
 
+__attribute__((warn_unused_result))
+bool
+gn_set_sig_hndlr (const int signum, const __sighandler_t hndlr);
+
 void
 gn_start_wrkrs (gn_wrkr_data_list_t * const wrkr_data_list, const int repoll_create1,
                 const uint8_t num_workers, const char * const path, int ipc_sock,
