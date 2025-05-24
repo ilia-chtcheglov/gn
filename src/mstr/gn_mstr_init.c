@@ -99,29 +99,40 @@ gn_sigint_handler (const int signum)
     sigint_rcvd = true;
 }
 
-void
-gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
+__attribute__((warn_unused_result))
+bool
+gn_set_sig_hndlr (const int signum, const __sighandler_t p);
+
+__attribute__((warn_unused_result))
+bool
+gn_set_sig_hndlr (const int signum, const __sighandler_t hndlr)
 {
     struct sigaction sa;
     memset (&sa, 0, sizeof (sa));
-    sa.sa_handler = gn_sigint_handler;
+    sa.sa_handler = hndlr;
 
-    const int rsigaction = sigaction (SIGINT, &sa, NULL);
+    const int rsigaction = sigaction (signum, &sa, NULL);
     switch (rsigaction)
     {
         case 0:
-            break;
+            return EXIT_SUCCESS;
         case -1:
         {
-            fprintf (stderr, "Failed to set SIGINT handler. %s.\n", strerror (errno));
-            return;
+            fprintf (stderr, "Failed to set signal %i handler. %s.\n", signum, strerror (errno));
+            return EXIT_FAILURE;
         }
         default:
         {
             fprintf (stderr, "sigaction() returned undocumented value %i.\n", rsigaction);
-            return;
+            return EXIT_FAILURE;
         }
     }
+}
+
+void
+gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
+{
+    if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return;
 
     // Get current time to generate a path for the IPC socket.
     struct timespec ts;
