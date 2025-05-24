@@ -52,6 +52,10 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
     if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return;
 
+    // Detect the absolute path of the program.
+    char * self_path = gn_self_path ();
+    if (self_path == NULL) return;
+
     char * ipc_addr_str = gn_ipc_prep (ipc_sock);
     if (ipc_addr_str == NULL) return;
 
@@ -87,10 +91,6 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     gn_wrkr_data_list_t wrkr_data_list;
     memset (&wrkr_data_list, 0, sizeof (gn_wrkr_data_list_t));
 
-    // Detect the absolute path of the program.
-    char * self_path = gn_self_path ();
-    if (self_path == NULL) goto labl_close_epoll_fd;
-
     // Start worker processes.
     gn_start_wrkrs (&wrkr_data_list, repoll_create1, mstr_conf.workers,
                     self_path, ipc_sock, ipc_addr_str, serv_sock_list);
@@ -101,12 +101,11 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     // Stop worker processes.
     gn_stop_wrkrs (&wrkr_data_list);
 
-    free (self_path);
-    self_path = NULL;
-
-    labl_close_epoll_fd:
     gn_close (&repoll_create1);
 
     free (ipc_addr_str);
     ipc_addr_str = NULL;
+
+    free (self_path);
+    self_path = NULL;
 }
