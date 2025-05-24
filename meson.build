@@ -26,6 +26,7 @@ mstr_files = files(
     'src/mstr/gn_mstr_init.c',
     'src/mstr/gn_mstr_main.c',
     'src/mstr/gn_open_serv_sock.c',
+    'src/mstr/gn_self_path.c',
     'src/mstr/gn_send_serv_sock.c',
     'src/mstr/gn_start_wrkr.c',
     'src/mstr/gn_start_wrkrs.c',

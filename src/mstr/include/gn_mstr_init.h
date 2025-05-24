@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/epoll.h>
-#include <time.h>
-#include <unistd.h>
 
 #include <gn_mstr_conf_t.h>
 #include <gn_serv_sock_list_t.h>
@@ -41,6 +39,10 @@ gn_mstr_main (gn_wrkr_data_list_t * const wrkr_data_list, int * const repoll_cre
 __attribute__((warn_unused_result))
 int
 gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, const uint16_t port);
+
+__attribute__((warn_unused_result))
+char *
+gn_self_path (void);
 
 __attribute__((warn_unused_result))
 bool
