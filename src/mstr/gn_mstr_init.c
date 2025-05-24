@@ -15,6 +15,38 @@ gn_sigint_handler (const int signum)
     sigint_rcvd = true;
 }
 
+__attribute__((warn_unused_result))
+char *
+gn_self_path (void);
+
+__attribute__((warn_unused_result))
+char *
+gn_self_path (void)
+{
+    char temp_path[1024];
+    memset (temp_path, 0, sizeof (temp_path));
+
+    const ssize_t rreadlink = readlink ("/proc/self/exe", temp_path, sizeof (temp_path) - 1);
+    if (rreadlink == -1)
+    {
+        fprintf (stderr, "Failed to read path from \"/proc/self/exe\". %s.\n", strerror (errno));
+        return NULL;
+    }
+
+    const size_t self_path_len = (size_t)rreadlink;
+    temp_path[self_path_len] = '\0';
+
+    char * self_path = (char *)malloc (self_path_len + 1);
+    if (self_path == NULL)
+    {
+        fprintf (stderr, "Failed to allocate buffer for program's self path.\n");
+        return NULL;
+    }
+
+    strcpy (self_path, temp_path);
+    return self_path;
+}
+
 void
 gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
@@ -56,34 +88,23 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     memset (&wrkr_data_list, 0, sizeof (gn_wrkr_data_list_t));
 
     // Detect the absolute path of the program.
-    char self_path[1024];
-    memset (self_path, 0, sizeof (self_path));
+    char * self_path = gn_self_path ();
+    if (self_path == NULL) goto labl_close_epoll_fd;
 
-    const ssize_t rreadlink = readlink ("/proc/self/exe", self_path, sizeof (self_path) - 1);
-    switch (rreadlink)
-    {
-        case -1:
-        {
-            fprintf (stderr, "Failed to read path from \"/proc/self/exe\". %s.\n", strerror (errno));
-            break;
-        }
-        case 0:
-        {
-            break;
-        }
-        default:
-        {
-            // Start worker processes.
-            gn_start_wrkrs (&wrkr_data_list, repoll_create1, mstr_conf.workers, self_path,
-                            ipc_sock, ipc_addr_str, serv_sock_list);
-        }
-    }
+    // Start worker processes.
+    gn_start_wrkrs (&wrkr_data_list, repoll_create1, mstr_conf.workers,
+                    self_path, ipc_sock, ipc_addr_str, serv_sock_list);
 
-    gn_mstr_main (&wrkr_data_list, &repoll_create1, self_path, ipc_sock, ipc_addr_str, serv_sock_list);
+    gn_mstr_main (&wrkr_data_list, &repoll_create1, self_path,
+                  ipc_sock, ipc_addr_str, serv_sock_list);
 
     // Stop worker processes.
     gn_stop_wrkrs (&wrkr_data_list);
 
+    free (self_path);
+    self_path = NULL;
+
+    labl_close_epoll_fd:
     gn_close (&repoll_create1);
 
     free (ipc_addr_str);
