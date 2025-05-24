@@ -34,6 +34,7 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
     while ((ent = readdir (ropendir)) != NULL)
     {
         if (strcmp (ent->d_name, ".") == 0 || strcmp (ent->d_name, "..") == 0) continue;
+        // TODO: Check ent->d_type.
         if (strcmp (ent->d_name, ".conf") == 0)
         {
             fprintf (stderr, "Invalid virtual host configuration file name \".conf\".\n");
@@ -51,7 +52,7 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
         if (path == NULL)
         {
             // TODO: Display error message.
-            continue;
+            break;
         }
 
         strcpy (path, GN_VHSTS_CONF_DIR_PATH);
@@ -63,7 +64,7 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
             fprintf (stderr, "Failed to parse virtual host configuration file \"%s\".\n", path);
             free (path);
             path = NULL;
-            continue;
+            break;
         }
 
         json_object_put (root);
