@@ -5,8 +5,13 @@ bool sigint_rcvd = false;
 void
 gn_sigint_handler (const int signum)
 {
-    (void)signum;
-    printf ("Master process received SIGINT.\n");
+    if (signum != SIGINT)
+    {
+        fprintf (stderr, "SIGINT handler called for signal %i.\n", signum);
+        // TODO: Maybe stop process in this case.
+        return;
+    }
+
     sigint_rcvd = true;
 }
 
