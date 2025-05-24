@@ -18,7 +18,11 @@ comn_files = files(
 
 mstr_files = files(
     'src/mstr/gn_ipc_acpt.c',
+    'src/mstr/gn_ipc_bind.c',
+    'src/mstr/gn_ipc_lstn.c',
+    'src/mstr/gn_ipc_prep.c',
     'src/mstr/gn_load_mstr_conf.c',
+    'src/mstr/gn_load_vhsts_conf.c',
     'src/mstr/gn_mstr_init.c',
     'src/mstr/gn_mstr_main.c',
     'src/mstr/gn_open_serv_sock.c',

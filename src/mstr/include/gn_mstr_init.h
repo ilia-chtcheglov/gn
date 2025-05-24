@@ -7,13 +7,14 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/epoll.h>
-#include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
 
 #include <gn_mstr_conf_t.h>
 #include <gn_serv_sock_list_t.h>
+#include <gn_vhst_conf_list_t.h>
 #include <gn_wrkr_data_list_t.h>
 
 void
@@ -22,8 +23,16 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
 int
 gn_close (int * const fd);
 
+__attribute__((malloc))
+__attribute__((warn_unused_result))
+char *
+gn_ipc_prep (const int ipc_sock);
+
 void
 gn_load_mstr_conf (gn_mstr_conf_t * const mstr_conf);
+
+void
+gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list);
 
 void
 gn_mstr_main (gn_wrkr_data_list_t * const wrkr_data_list, int * const repoll_create1, const char * const self_path,
@@ -36,6 +45,9 @@ gn_open_serv_sock (gn_serv_sock_list_t * const list, const char * const addr, co
 __attribute__((warn_unused_result))
 bool
 gn_set_sig_hndlr (const int signum, const __sighandler_t hndlr);
+
+void
+gn_sigint_handler (const int signum);
 
 void
 gn_start_wrkrs (gn_wrkr_data_list_t * const wrkr_data_list, const int repoll_create1,
