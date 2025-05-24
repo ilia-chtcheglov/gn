@@ -23,11 +23,7 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     char * ipc_addr_str = gn_ipc_prep (ipc_sock);
     if (ipc_addr_str == NULL) return;
 
-    gn_mstr_conf_t mstr_conf;
-    mstr_conf.workers = 1;
-    mstr_conf.connection_acceptance_threads = 1;
-    mstr_conf.connection_management_threads = 1;
-
+    gn_mstr_conf_t mstr_conf = GN_MSTR_CONF_INIT;
     gn_load_mstr_conf (&mstr_conf);
 
     gn_vhst_conf_list_t vhst_conf_list;

@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#define GN_MSTR_CONF_INIT               \
+{                                       \
+    .workers = 1,                       \
+    .connection_acceptance_threads = 1, \
+    .connection_management_threads = 1  \
+}
+
 typedef struct
 {
     uint8_t workers;
