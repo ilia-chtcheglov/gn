@@ -5,6 +5,7 @@ typedef struct gn_vhst_conf_t gn_vhst_conf_t;
 
 struct gn_vhst_conf_t
 {
+    char *           document_root;
     gn_vhst_conf_t * prev;
     gn_vhst_conf_t * next;
 };
