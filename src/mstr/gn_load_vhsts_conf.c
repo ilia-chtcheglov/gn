@@ -41,10 +41,22 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
         strcpy (path, GN_VHSTS_CONF_DIR_PATH);
         strcat (path, ent->d_name);
 
+        gn_vhst_conf_t * vhst_conf = (gn_vhst_conf_t *)malloc (sizeof (gn_vhst_conf_t));
+        if (vhst_conf == NULL)
+        {
+            fprintf (stderr, "Failed to allocate structure for virtual host configuration.\n");
+            free (path);
+            path = NULL;
+            break;
+        }
+
         json_object * root = json_object_from_file (path);
         if (root == NULL)
         {
             fprintf (stderr, "Failed to parse virtual host configuration file \"%s\".\n", path);
+            free (vhst_conf);
+            vhst_conf = NULL;
+
             free (path);
             path = NULL;
             break;
@@ -52,6 +64,9 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
 
         json_object_put (root);
         root = NULL;
+
+        free (vhst_conf);
+        vhst_conf = NULL;
 
         free (path);
         path = NULL;
