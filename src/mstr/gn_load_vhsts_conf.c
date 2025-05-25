@@ -18,16 +18,12 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
     {
         if (strcmp (ent->d_name, ".") == 0 || strcmp (ent->d_name, "..") == 0) continue;
         // TODO: Check ent->d_type.
-        if (strcmp (ent->d_name, ".conf") == 0)
-        {
-            fprintf (stderr, "Invalid virtual host configuration file name \".conf\".\n");
-            break;
-        }
+        if (strcmp (ent->d_name, ".conf") == 0) continue;
+
         if (strlen (ent->d_name) < 6 ||
             strcmp (&ent->d_name[strlen (ent->d_name) - 5], ".conf") != 0)
         {
-            fprintf (stderr, "Virtual host configuration file \"%s\" doesn't end with \".conf\".\n", ent->d_name);
-            break;
+            continue;
         }
 
         printf ("d_name == \"%s\"\n", ent->d_name); // TODO: Remove.
