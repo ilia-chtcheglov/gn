@@ -15,10 +15,55 @@ gn_sigint_handler (const int signum)
     sigint_rcvd = true;
 }
 
+#include <fcntl.h>
+#include <sys/file.h>
+
 void
 gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 {
     if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return;
+
+    int lock_fd = open ("/run/gn.lock", O_RDONLY | O_CLOEXEC | O_CREAT, S_IRUSR | S_IRGRP);
+    if (lock_fd < 0)
+    {
+        fprintf (stderr, "Failed to create/open the lock file. %s.\n", strerror (errno));
+        return;
+    }
+
+    bool try_lock = true;
+    while (try_lock)
+    {
+        const int rflock = flock (lock_fd, LOCK_EX | LOCK_NB);
+        switch (rflock)
+        {
+            case 0:
+            {
+                try_lock = false;
+                break;
+            }
+            case -1:
+            {
+                switch (errno)
+                {
+                    case EINTR:
+                        break;
+                    default:
+                    {
+                        fprintf (stderr, "Failed to lock the lock file. %s.\n", strerror (errno));
+                        gn_close (&lock_fd);
+                        return;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                fprintf (stderr, "flock() returned undocumented value %i.\n", rflock);
+                gn_close (&lock_fd);
+                return;
+            }
+        }
+    }
 
     // Detect the absolute path of the program.
     char * self_path = gn_self_path ();
