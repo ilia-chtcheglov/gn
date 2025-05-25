@@ -1,10 +1,39 @@
 #include <gn_load_vhsts_conf.h>
 
+int
+gn_vhst_conf_list_push_back (gn_vhst_conf_list_t * const list, gn_vhst_conf_t * const conf);
+
+int
+gn_vhst_conf_list_push_back (gn_vhst_conf_list_t * const list, gn_vhst_conf_t * const conf)
+{
+    switch (list->len)
+    {
+        case 0:
+        {
+            list->head = list->tail = conf->prev = conf->next = conf;
+            break;
+        }
+        case UINT32_MAX:
+        {
+            return 1;
+        }
+        default:
+        {
+            list->tail->next = conf;
+            conf->prev = list->tail;
+            list->head->prev = conf;
+            conf->next = list->head;
+            list->tail = conf;
+        }
+    }
+
+    list->len++;
+    return 0;
+}
+
 void
 gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
 {
-    (void)vhst_conf_list; // TODO: Remove.
-
     DIR * ropendir = opendir (GN_VHSTS_CONF_DIR_PATH);
     if (ropendir == NULL)
     {
@@ -18,7 +47,6 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
     {
         if (strcmp (ent->d_name, ".") == 0 || strcmp (ent->d_name, "..") == 0) continue;
         // TODO: Check ent->d_type.
-        if (strcmp (ent->d_name, ".conf") == 0) continue;
 
         if (strlen (ent->d_name) < 6 ||
             strcmp (&ent->d_name[strlen (ent->d_name) - 5], ".conf") != 0)
@@ -26,7 +54,6 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
             continue;
         }
 
-        printf ("d_name == \"%s\"\n", ent->d_name); // TODO: Remove.
         char * path = (char *)malloc (strlen (GN_VHSTS_CONF_DIR_PATH) + strlen (ent->d_name) + 1);
         if (path == NULL)
         {
@@ -68,21 +95,27 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
                     break;
                 }
 
-                const char * str = json_object_get_string (val);
-                printf ("\"%s\": %s\n", key, str);
+                vhst_conf->document_root = strdup (json_object_get_string (val));
+                printf ("\"%s\": \"%s\"\n", key, vhst_conf->document_root);
             }
             else
             {
+                /*
                 fprintf (stderr, "Unsupported configuration directive \"%s\" in \"%s\".\n", key, path);
                 break;
+                */
             }
         }
+
+        gn_vhst_conf_list_push_back (vhst_conf_list, vhst_conf);
 
         json_object_put (root);
         root = NULL;
 
+        /*
         free (vhst_conf);
         vhst_conf = NULL;
+        */
 
         free (path);
         path = NULL;
