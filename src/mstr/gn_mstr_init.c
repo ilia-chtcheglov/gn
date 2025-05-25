@@ -15,6 +15,41 @@ gn_sigint_handler (const int signum)
     sigint_rcvd = true;
 }
 
+__attribute__((warn_unused_result))
+gn_vhst_conf_t *
+gn_vhst_conf_list_pop (gn_vhst_conf_list_t * const list);
+
+__attribute__((warn_unused_result))
+gn_vhst_conf_t *
+gn_vhst_conf_list_pop (gn_vhst_conf_list_t * const list)
+{
+    switch (list->len)
+    {
+        case 0:
+        {
+            return NULL;
+        }
+        case 1:
+        {
+            gn_vhst_conf_t * const ret = list->head;
+            list->head = list->tail = NULL;
+            list->len--;
+            return ret;
+        }
+        default:
+        {
+            gn_vhst_conf_t * const ret = list->head;
+            list->head = list->head->next;
+
+            list->head->prev = list->tail;
+            list->tail->next = list->head;
+
+            list->len--;
+            return ret;
+        }
+    }
+}
+
 #include <fcntl.h>
 #include <sys/file.h>
 
@@ -79,6 +114,14 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     memset (&vhst_conf_list, 0, sizeof (vhst_conf_list));
     gn_load_vhsts_conf (&vhst_conf_list);
 
+    // Test code.
+    gn_vhst_conf_t * vhst_conf = vhst_conf_list.head;
+    for (uint32_t i = 0; i < vhst_conf_list.len; vhst_conf = vhst_conf->next, i++)
+    {
+        printf (" - Vhost:\n");
+        printf ("   * document_root: \"%s\".\n", vhst_conf->document_root);
+    }
+
     // Open server sockets.
     int rgn_open_serv_sock = gn_open_serv_sock (serv_sock_list, "0.0.0.0", 8080);
     if (rgn_open_serv_sock != 0) fprintf (stderr, "Failed to open server socket.\n");
@@ -87,7 +130,7 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
 
     // Test code.
     gn_serv_sock_t * serv_sock = serv_sock_list->head;
-    for (size_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
+    for (uint16_t i = 0; i < serv_sock_list->len; serv_sock = serv_sock->next, i++)
     {
         printf ("Server socket .fd: %i, .addr: [%s], .port: %i.\n", serv_sock->fd, serv_sock->addr, serv_sock->port);
     }
@@ -115,6 +158,13 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     gn_stop_wrkrs (&wrkr_data_list);
 
     gn_close (&repoll_create1);
+
+    while (vhst_conf_list.len > 0)
+    {
+        gn_vhst_conf_t * const conf = gn_vhst_conf_list_pop (&vhst_conf_list);
+        free (conf->document_root);
+        free (conf);
+    }
 
     free (ipc_addr_str);
     ipc_addr_str = NULL;
