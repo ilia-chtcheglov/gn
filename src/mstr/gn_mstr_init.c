@@ -25,7 +25,7 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     if (self_path == NULL) return;
 
     char * ipc_addr_str = gn_ipc_prep (ipc_sock);
-    if (ipc_addr_str == NULL) return;
+    if (ipc_addr_str == NULL) goto labl_free_self_path;
 
     gn_mstr_conf_t mstr_conf = GN_MSTR_CONF_INIT;
     gn_load_mstr_conf (&mstr_conf);
@@ -74,6 +74,7 @@ gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
     free (ipc_addr_str);
     ipc_addr_str = NULL;
 
+    labl_free_self_path:
     free (self_path);
     self_path = NULL;
 }
