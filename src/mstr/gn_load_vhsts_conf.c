@@ -62,6 +62,26 @@ gn_load_vhsts_conf (gn_vhst_conf_list_t * const vhst_conf_list)
             break;
         }
 
+        json_object_object_foreach(root, key, val)
+        {
+            if (strcmp (key, "document_root") == 0)
+            {
+                if (json_object_get_type (val) != json_type_string)
+                {
+                    fprintf (stderr, "The value of directive \"%s\" must be a string.\n", key);
+                    break;
+                }
+
+                const char * str = json_object_get_string (val);
+                printf ("\"%s\": %s\n", key, str);
+            }
+            else
+            {
+                fprintf (stderr, "Unsupported configuration directive \"%s\" in \"%s\".\n", key, path);
+                break;
+            }
+        }
+
         json_object_put (root);
         root = NULL;
 
