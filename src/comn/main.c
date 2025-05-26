@@ -15,53 +15,7 @@ main (const int argc,
     const char * ipc_addr_str = NULL;
 
     // Parse command line arguments.
-    for (int argi = 1; argi < argc; argi++)
-    {
-        if (argv[argi] == NULL)
-        {
-            fprintf (stderr, "argv[%i] should not be NULL but is.\n", argi);
-            return EXIT_FAILURE;
-        }
-
-        if (strcmp (argv[argi], "--ipc") == 0)
-        {
-            if (ipc_addr_str != NULL)
-            {
-                fprintf (stderr, "Command line argument \"--ipc\" already used.\n");
-                return EXIT_FAILURE;
-            }
-            if (++argi >= argc)
-            {
-                fprintf (stderr, "Missing value after \"--ipc\" command line argument.\n");
-                return EXIT_FAILURE;
-            }
-            if (argv[argi] == NULL)
-            {
-                fprintf (stderr, "argv[%i] should not be NULL but is.\n", argi);
-                return EXIT_FAILURE;
-            }
-
-            const struct sockaddr_un sun = { 0 };
-            const size_t ipc_addr_str_len = strlen (argv[argi]);
-            if (ipc_addr_str_len < 1)
-            {
-                fprintf (stderr, "IPC address too short (minimum 1).\n");
-                return EXIT_FAILURE;
-            }
-            if (ipc_addr_str_len >= sizeof (sun.sun_path))
-            {
-                fprintf (stderr, "IPC address too long (maximum %lu).\n", sizeof (sun.sun_path) - 1);
-                return EXIT_FAILURE;
-            }
-
-            ipc_addr_str = argv[argi];
-        }
-        else
-        {
-            fprintf (stderr, "Unsupported command line argument \"%s\".\n", argv[argi]);
-            return EXIT_FAILURE;
-        }
-    }
+    if (gn_prse_cmdl_args (argc, argv, &ipc_addr_str) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     /*
      * Open a Unix IPC socket. It will be used by:

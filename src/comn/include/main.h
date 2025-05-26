@@ -1,13 +1,12 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include <arpa/inet.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/un.h>
+#include <sys/socket.h>
 
 #include <gn_serv_sock_list_t.h>
 
@@ -22,6 +21,13 @@ gn_close (int * const fd);
 void
 gn_mstr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list);
+
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+bool
+gn_prse_cmdl_args (const int argc,
+                   const char * const * const argv,
+                   const char ** const ipc_addr_str);
 
 void
 gn_wrkr_init (int ipc_sock,
