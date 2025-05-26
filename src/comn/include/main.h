@@ -3,6 +3,7 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,8 +11,10 @@
 
 #include <gn_serv_sock_list_t.h>
 
-#define GN_CMDL_ARGS_MIN 1 // Minimum number of command line arguments.
-#define GN_CMDL_ARGS_MAX 8 // Maximum number of command line arguments.
+__attribute__((warn_unused_result))
+bool
+gn_chck_cmdl_args (const int argc,
+                   const char * const * const argv);
 
 int
 gn_close (int * const fd);

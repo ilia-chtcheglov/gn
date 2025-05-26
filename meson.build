@@ -9,6 +9,7 @@ c_flags = [
 
 comn_files = files(
     'src/comn/main.c',
+    'src/comn/gn_chck_cmdl_args.c',
     'src/comn/gn_close_serv_socks.c',
     'src/comn/gn_close.c',
     'src/comn/gn_serv_sock_list_pop.c',
