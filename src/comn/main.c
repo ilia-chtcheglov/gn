@@ -22,12 +22,8 @@ main (const int argc,
      * - The master process to control worker processes.
      * - Worker processes to receive commands, send statistics to the master, etc.
      */
-    int ipc_sock = socket (AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
-    if (ipc_sock < 0)
-    {
-        fprintf (stderr, "Failed to create IPC socket. %s.\n", strerror (errno));
-        return EXIT_FAILURE;
-    }
+    int ipc_sock = gn_ipc_open ();
+    if (ipc_sock < 0) return EXIT_FAILURE;
 
     // List of server sockets.
     gn_serv_sock_list_t serv_sock_list;
