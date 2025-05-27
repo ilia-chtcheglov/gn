@@ -1,5 +1,6 @@
 #include <gn_chck_cmdl_args.h>
 
+__attribute__((nonnull))
 __attribute__((warn_unused_result))
 bool
 gn_chck_cmdl_args (const int argc,

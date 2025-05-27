@@ -10,6 +10,7 @@
 
 #include <gn_serv_sock_list_t.h>
 
+__attribute__((nonnull))
 __attribute__((warn_unused_result))
 bool
 gn_chck_cmdl_args (const int argc,
