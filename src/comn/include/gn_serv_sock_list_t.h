@@ -11,6 +11,7 @@ typedef struct
     gn_serv_sock_t *        head;
     gn_serv_sock_t *        tail;
     gn_serv_sock_list_len_t len;
+    uint8_t                 _pad[6];
 } gn_serv_sock_list_t;
 
 #endif // GN_SERV_SOCK_LIST_T_H
