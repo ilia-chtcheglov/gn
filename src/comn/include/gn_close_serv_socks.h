@@ -6,6 +6,7 @@
 
 #include <gn_serv_sock_list_t.h>
 
+__attribute__((nonnull))
 void
 gn_close_serv_socks (gn_serv_sock_list_t * const serv_sock_list);
 

@@ -5,7 +5,6 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 
 __attribute__((nonnull))
 __attribute__((warn_unused_result))
@@ -13,6 +12,7 @@ bool
 gn_chck_cmdl_args (const int argc,
                    const char * const * const argv);
 
+__attribute__((nonnull))
 void
 gn_close_serv_socks (gn_serv_sock_list_t * const serv_sock_list);
 
