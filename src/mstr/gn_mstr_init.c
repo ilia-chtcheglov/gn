@@ -53,8 +53,10 @@ gn_vhst_conf_list_pop (gn_vhst_conf_list_t * const list)
 #include <fcntl.h>
 #include <sys/file.h>
 
+__attribute__((nonnull))
 void
-gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list)
+gn_mstr_init (int ipc_sock,
+              gn_serv_sock_list_t * const serv_sock_list)
 {
     if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return;
 

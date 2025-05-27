@@ -1,7 +1,10 @@
 #include <gn_wrkr_init.h>
 
+__attribute__((nonnull))
 void
-gn_wrkr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str)
+gn_wrkr_init (int ipc_sock,
+              gn_serv_sock_list_t * const serv_sock_list,
+              const char * const ipc_addr_str)
 {
     signal (SIGINT, SIG_IGN);
 

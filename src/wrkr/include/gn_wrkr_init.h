@@ -12,8 +12,11 @@
 #include <gn_conn_mgmt_thrd_data_list_t.h>
 #include <gn_serv_sock_list_t.h>
 
+__attribute__((nonnull))
 void
-gn_wrkr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list, const char * const ipc_addr_str);
+gn_wrkr_init (int ipc_sock,
+              gn_serv_sock_list_t * const serv_sock_list,
+              const char * const ipc_addr_str);
 
 int
 gn_close (int * const fd);

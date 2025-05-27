@@ -15,8 +15,10 @@
 #include <gn_vhst_conf_list_t.h>
 #include <gn_wrkr_data_list_t.h>
 
+__attribute__((nonnull))
 void
-gn_mstr_init (int ipc_sock, gn_serv_sock_list_t * const serv_sock_list);
+gn_mstr_init (int ipc_sock,
+              gn_serv_sock_list_t * const serv_sock_list);
 
 int
 gn_close (int * const fd);
