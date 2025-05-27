@@ -35,7 +35,7 @@ main (const int argc,
     gn_close_serv_socks (&serv_sock_list);
 
     // Close the IPC socket.
-    gn_close (&ipc_sock);
+    gn_ipc_close (&ipc_sock);
 
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS; // TODO: Return a variable.
 }
