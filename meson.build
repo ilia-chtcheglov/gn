@@ -35,7 +35,7 @@ mstr_files = files(
     'src/mstr/gn_start_wrkr.c',
     'src/mstr/gn_start_wrkrs.c',
     'src/mstr/gn_stop_wrkrs.c',
-    'src/mstr/gn_vhst_conf_list_pop.c',
+    'src/mstr/gn_vhst_conf_list_pop_front.c',
     'src/mstr/gn_wrkr_data_list_pop.c',
     'src/mstr/gn_wrkr_data_list_push_back.c',
     'src/mstr/gn_wrkr_data_list_remove.c'
