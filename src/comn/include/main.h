@@ -25,7 +25,8 @@ int
 gn_ipc_open (void);
 
 __attribute__((nonnull))
-void
+__attribute__((warn_unused_result))
+bool
 gn_mstr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list);
 

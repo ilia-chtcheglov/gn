@@ -28,7 +28,8 @@ main (const int argc,
     // List of server sockets.
     gn_serv_sock_list_t serv_sock_list = { 0 };
 
-    if (ipc_addr_str == NULL) gn_mstr_init (ipc_sock, &serv_sock_list);
+    bool this_ret = EXIT_SUCCESS;
+    if (ipc_addr_str == NULL) this_ret = gn_mstr_init (ipc_sock, &serv_sock_list);
     else gn_wrkr_init (ipc_sock, &serv_sock_list, ipc_addr_str);
 
     // Close server sockets.
@@ -37,5 +38,5 @@ main (const int argc,
     // Close the IPC socket.
     gn_ipc_close (&ipc_sock);
 
-    return EXIT_SUCCESS; // TODO: Return a variable.
+    return this_ret;
 }

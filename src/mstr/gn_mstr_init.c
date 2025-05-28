@@ -19,17 +19,18 @@ gn_sigint_handler (const int signum)
 #include <sys/file.h>
 
 __attribute__((nonnull))
-void
+__attribute__((warn_unused_result))
+bool
 gn_mstr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list)
 {
-    if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return;
+    if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     int lock_fd = open ("/run/gn.lock", O_RDONLY | O_CLOEXEC | O_CREAT, S_IRUSR | S_IRGRP);
     if (lock_fd < 0)
     {
         fprintf (stderr, "Failed to create/open the lock file. %s.\n", strerror (errno));
-        return;
+        return EXIT_FAILURE;
     }
 
     bool try_lock = true;
@@ -53,7 +54,7 @@ gn_mstr_init (int ipc_sock,
                     {
                         fprintf (stderr, "Failed to lock the lock file. %s.\n", strerror (errno));
                         gn_close (&lock_fd);
-                        return;
+                        return EXIT_FAILURE;
                     }
                 }
                 break;
@@ -62,17 +63,23 @@ gn_mstr_init (int ipc_sock,
             {
                 fprintf (stderr, "flock() returned undocumented value %i.\n", rflock);
                 gn_close (&lock_fd);
-                return;
+                return EXIT_FAILURE;
             }
         }
     }
 
+    bool this_ret = EXIT_SUCCESS;
+
     // Detect the absolute path of the program.
     char * self_path = gn_self_path ();
-    if (self_path == NULL) return;
+    if (self_path == NULL) return EXIT_FAILURE;
 
     char * ipc_addr_str = gn_ipc_prep (ipc_sock);
-    if (ipc_addr_str == NULL) goto labl_free_self_path;
+    if (ipc_addr_str == NULL)
+    {
+        this_ret = EXIT_FAILURE;
+        goto labl_free_self_path;
+    }
 
     gn_mstr_conf_t mstr_conf = GN_MSTR_CONF_INIT;
     gn_load_mstr_conf (&mstr_conf);
@@ -107,7 +114,7 @@ gn_mstr_init (int ipc_sock,
     if (repoll_create1 < 0)
     {
         fprintf (stderr, "Failed to create workers epoll instance. %s.\n", strerror (errno));
-        return;
+        return EXIT_FAILURE; // TODO: Don't return here. vhst_conf_list is not emptied, self_path is not freed, etc.
     }
 
     // List of worker data structures (PID, IPC socket, etc).
@@ -128,9 +135,10 @@ gn_mstr_init (int ipc_sock,
 
     while (vhst_conf_list.len > 0)
     {
-        gn_vhst_conf_t * const conf = gn_vhst_conf_list_pop_front (&vhst_conf_list);
+        gn_vhst_conf_t * conf = gn_vhst_conf_list_pop_front (&vhst_conf_list);
         free (conf->document_root);
         free (conf);
+        conf = NULL;
     }
 
     free (ipc_addr_str);
@@ -139,4 +147,6 @@ gn_mstr_init (int ipc_sock,
     labl_free_self_path:
     free (self_path);
     self_path = NULL;
+
+    return this_ret;
 }
