@@ -128,7 +128,7 @@ gn_mstr_init (int ipc_sock,
 
     while (vhst_conf_list.len > 0)
     {
-        gn_vhst_conf_t * const conf = gn_vhst_conf_list_pop (&vhst_conf_list);
+        gn_vhst_conf_t * const conf = gn_vhst_conf_list_pop_front (&vhst_conf_list);
         free (conf->document_root);
         free (conf);
     }

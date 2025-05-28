@@ -1,9 +1,9 @@
-#include <gn_vhst_conf_list_pop.h>
+#include <gn_vhst_conf_list_pop_front.h>
 
 __attribute__((nonnull))
 __attribute__((warn_unused_result))
 gn_vhst_conf_t *
-gn_vhst_conf_list_pop (gn_vhst_conf_list_t * const list)
+gn_vhst_conf_list_pop_front (gn_vhst_conf_list_t * const list)
 {
     gn_vhst_conf_t * const this_ret = list->head;
 
