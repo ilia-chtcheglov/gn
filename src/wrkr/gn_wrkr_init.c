@@ -20,23 +20,23 @@ gn_wrkr_init (int ipc_sock,
         return EXIT_FAILURE;
     }
 
+    int this_ret = EXIT_SUCCESS;
     // Receive server sockets data.
     if (gn_recv_serv_socks (ipc_sock, repoll_create1, serv_sock_list) != 1)
     {
         fprintf (stderr, "Error occured while receiving server sockets data.\n");
+        this_ret = EXIT_FAILURE;
         goto labl_gn_recv_serv_socks_failed;
     }
 
     // List of structures, one for each connection management thread.
-    gn_conn_mgmt_thrd_data_list_t conn_mgmt_thrd_data_list;
-    memset (&conn_mgmt_thrd_data_list, 0, sizeof (conn_mgmt_thrd_data_list));
+    gn_conn_mgmt_thrd_data_list_t conn_mgmt_thrd_data_list = { 0 };
 
     // Start connection management threads.
     gn_start_conn_mgmt_thrds (1, &conn_mgmt_thrd_data_list);
 
     // List of structures, one for each connection acceptance thread.
-    gn_conn_acpt_thrd_data_list_t conn_acpt_thrd_data_list;
-    memset (&conn_acpt_thrd_data_list, 0, sizeof (conn_acpt_thrd_data_list));
+    gn_conn_acpt_thrd_data_list_t conn_acpt_thrd_data_list = { 0 };
 
     // Start connection acceptance threads.
     gn_start_conn_acpt_thrds (1, &conn_acpt_thrd_data_list, repoll_create1, &conn_mgmt_thrd_data_list);
@@ -52,5 +52,5 @@ gn_wrkr_init (int ipc_sock,
     // Close the epoll instance created for server sockets.
     gn_close (&repoll_create1);
 
-    return EXIT_SUCCESS;
+    return this_ret;
 }
