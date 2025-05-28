@@ -61,4 +61,9 @@ gn_start_wrkrs (gn_wrkr_data_list_t * const wrkr_data_list, const int repoll_cre
 void
 gn_stop_wrkrs (gn_wrkr_data_list_t * const list);
 
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+gn_vhst_conf_t *
+gn_vhst_conf_list_pop (gn_vhst_conf_list_t * const list);
+
 #endif // GN_MSTR_INIT_H
