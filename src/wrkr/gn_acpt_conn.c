@@ -87,6 +87,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     strcpy (conn->saddr, saddr);
     conn->fd = raccept4;
     conn->sport = sport;
+    conn->step = GN_CONN_STEP_RECV_DATA;
 
     // Pass the structure to a connection management thread.
     gn_conn_mgmt_thrd_data_t * data = list->head;

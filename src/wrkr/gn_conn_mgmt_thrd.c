@@ -1,13 +1,42 @@
 #include <gn_conn_mgmt_thrd.h>
 
-#include <arpa/inet.h>
-#include <unistd.h>
-
-int
-gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn);
+#include <arpa/inet.h> // TODO: Remove.
 
 void
-gn_conn_list_remove (gn_conn_list_t * const list, gn_conn_t * const conn);
+gn_recv_data (gn_conn_t * const conn);
+
+void
+gn_recv_data (gn_conn_t * const conn)
+{
+    char buf[1024];
+    const ssize_t rrecv = recv (conn->fd, buf, sizeof (buf) - 1, 0);
+    if (rrecv > 0)
+    {
+        const size_t buf_len = (size_t)rrecv;
+        buf[buf_len] = '\0';
+        printf ("Received (%lu) \"%s\"\n", buf_len, buf);
+    }
+}
+
+void
+gn_process_conn (gn_conn_t * const conn);
+
+void
+gn_process_conn (gn_conn_t * const conn)
+{
+    switch (conn->step)
+    {
+        case GN_CONN_STEP_RECV_DATA:
+        {
+            gn_recv_data (conn);
+            break;
+        }
+        default:
+        {
+            fprintf (stderr, "Invalid connection step %u.\n", conn->step);
+        }
+    }
+}
 
 void *
 gn_conn_mgmt_thrd (void * const p)
@@ -28,15 +57,7 @@ gn_conn_mgmt_thrd (void * const p)
         gn_conn_t * next_conn = NULL;
         for (uint32_t i = 0; i < conn_list.len; i++)
         {
-            // Test code.
-            char buf[1024];
-            const ssize_t rrecv = recv (conn->fd, buf, sizeof (buf) - 1, 0);
-            if (rrecv > 0)
-            {
-                const size_t buf_len = (size_t)rrecv;
-                buf[buf_len] = '\0';
-                printf ("Received (%lu) \"%s\"\n", buf_len, buf);
-            }
+            gn_process_conn (conn);
 
             // If the thread has to stop we close and remove the connection from the list.
             if (stop)
