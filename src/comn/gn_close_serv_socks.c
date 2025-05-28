@@ -6,9 +6,12 @@ gn_close_serv_socks (gn_serv_sock_list_t * const serv_sock_list)
 {
     while (serv_sock_list->len > 0)
     {
-        gn_serv_sock_t * const serv_sock = gn_serv_sock_list_pop (serv_sock_list);
+        gn_serv_sock_t * serv_sock = gn_serv_sock_list_pop_front (serv_sock_list);
+
         gn_close (&serv_sock->fd);
         free (serv_sock->addr);
+
         free (serv_sock);
+        serv_sock = NULL;
     }
 }

@@ -1,10 +1,9 @@
 #ifndef GN_CLOSE_SERV_SOCKS_H
 #define GN_CLOSE_SERV_SOCKS_H
 
-#include <stdlib.h>
-#include <unistd.h>
-
 #include <gn_serv_sock_list_t.h>
+
+#include <stdlib.h>
 
 __attribute__((nonnull))
 void
@@ -15,6 +14,6 @@ gn_close (int * const fd);
 
 __attribute__((warn_unused_result))
 gn_serv_sock_t *
-gn_serv_sock_list_pop (gn_serv_sock_list_t * const serv_sock_list);
+gn_serv_sock_list_pop_front (gn_serv_sock_list_t * const serv_sock_list);
 
 #endif // GN_CLOSE_SERV_SOCKS_H

@@ -1,8 +1,8 @@
-#include <gn_serv_sock_list_pop.h>
+#include <gn_serv_sock_list_pop_front.h>
 
 __attribute__((warn_unused_result))
 gn_serv_sock_t *
-gn_serv_sock_list_pop (gn_serv_sock_list_t * const list)
+gn_serv_sock_list_pop_front (gn_serv_sock_list_t * const list)
 {
     switch (list->len)
     {
