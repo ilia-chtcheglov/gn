@@ -38,7 +38,8 @@ gn_prse_cmdl_args (const int argc,
                    const char ** const ipc_addr_str);
 
 __attribute__((nonnull))
-void
+__attribute__((warn_unused_result))
+bool
 gn_wrkr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list,
               const char * const ipc_addr_str);

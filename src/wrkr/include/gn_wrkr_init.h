@@ -3,6 +3,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +14,8 @@
 #include <gn_serv_sock_list_t.h>
 
 __attribute__((nonnull))
-void
+__attribute__((warn_unused_result))
+bool
 gn_wrkr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list,
               const char * const ipc_addr_str);

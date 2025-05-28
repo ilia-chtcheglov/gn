@@ -1,7 +1,8 @@
 #include <gn_wrkr_init.h>
 
 __attribute__((nonnull))
-void
+__attribute__((warn_unused_result))
+bool
 gn_wrkr_init (int ipc_sock,
               gn_serv_sock_list_t * const serv_sock_list,
               const char * const ipc_addr_str)
@@ -9,14 +10,14 @@ gn_wrkr_init (int ipc_sock,
     signal (SIGINT, SIG_IGN);
 
     // Connect to the master process.
-    if (gn_ipc_conn (ipc_sock, ipc_addr_str) != EXIT_SUCCESS) return;
+    if (gn_ipc_conn (ipc_sock, ipc_addr_str) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     // Create an epoll instance for server sockets.
     int repoll_create1 = epoll_create1 (EPOLL_CLOEXEC);
     if (repoll_create1 < 0)
     {
         fprintf (stderr, "Failed to create epoll instance. %s.\n", strerror (errno));
-        return;
+        return EXIT_FAILURE;
     }
 
     // Receive server sockets data.
@@ -50,4 +51,6 @@ gn_wrkr_init (int ipc_sock,
     labl_gn_recv_serv_socks_failed:
     // Close the epoll instance created for server sockets.
     gn_close (&repoll_create1);
+
+    return EXIT_SUCCESS;
 }

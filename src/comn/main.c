@@ -28,9 +28,11 @@ main (const int argc,
     // List of server sockets.
     gn_serv_sock_list_t serv_sock_list = { 0 };
 
-    bool this_ret = EXIT_SUCCESS;
+    bool this_ret = EXIT_FAILURE;
+    // Start as master process.
     if (ipc_addr_str == NULL) this_ret = gn_mstr_init (ipc_sock, &serv_sock_list);
-    else gn_wrkr_init (ipc_sock, &serv_sock_list, ipc_addr_str);
+    // Start as worker process.
+    else this_ret = gn_wrkr_init (ipc_sock, &serv_sock_list, ipc_addr_str);
 
     // Close server sockets.
     gn_close_serv_socks (&serv_sock_list);
