@@ -3,6 +3,22 @@
 #include <arpa/inet.h> // TODO: Remove.
 
 void
+gn_free_conn (gn_conn_t ** conn);
+
+void
+gn_free_conn (gn_conn_t ** conn)
+{
+    if (conn == NULL) return;
+
+    gn_close (&(*conn)->fd);
+    free ((*conn)->recv_buf);
+    free ((*conn)->saddr);
+
+    free (*conn);
+    *conn = NULL;
+}
+
+void
 gn_recv_data (gn_conn_t * const conn);
 
 void
@@ -66,10 +82,7 @@ gn_conn_mgmt_thrd (void * const p)
                 if (conn_list.len > 0) next_conn = conn->next;
                 else next_conn = NULL;
 
-                gn_close (&conn->fd);
-                free (conn->saddr);
-                free (conn);
-                conn = NULL;
+                gn_free_conn (&conn);
             }
             else
             {
@@ -93,13 +106,11 @@ gn_conn_mgmt_thrd (void * const p)
                 if (atomic_load_explicit (&data->new_conns[i], memory_order_relaxed) == (uintptr_t)NULL) continue;
 
                 // Turn the atomic_uintptr_t value into a pointer to a connection structure.
-                gn_conn_t * const new_conn = (gn_conn_t *)data->new_conns[i];
+                gn_conn_t * new_conn = (gn_conn_t *)data->new_conns[i];
                 // Close the connection if the thread has to stop or the connections list is full.
                 if (stop || gn_conn_list_push_back (&conn_list, new_conn) != 0)
                 {
-                    gn_close (&new_conn->fd);
-                    free (new_conn->saddr);
-                    free (new_conn);
+                    gn_free_conn (&new_conn);
                 }
 
                 // Make the array index available for a new connection.
