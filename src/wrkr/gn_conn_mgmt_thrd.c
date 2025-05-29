@@ -11,11 +11,25 @@ gn_recv_data (gn_conn_t * const conn)
 {
     const ssize_t rrecv = recv (conn->fd, &conn->recv_buf[conn->recv_buf_len],
                                 conn->recv_buf_sz - conn->recv_buf_len - 1, 0);
-    if (rrecv > 0)
+    switch (rrecv)
     {
-        conn->recv_buf_len += (uint32_t)rrecv;
-        conn->recv_buf[conn->recv_buf_len] = '\0';
-        printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf);
+        case -1:
+        {
+            // TODO: Check errno.
+            break;
+        }
+        case 0:
+        {
+            printf ("Client disconnected.\n");
+            conn->step = GN_CONN_STEP_CLOSE;
+            break;
+        }
+        default:
+        {
+            conn->recv_buf_len += (uint32_t)rrecv;
+            conn->recv_buf[conn->recv_buf_len] = '\0';
+            printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf);
+        }
     }
 
     conn->step = conn->prev_step;
@@ -30,6 +44,7 @@ gn_extr_mthd (gn_conn_t * const conn)
     size_t recv_buf_i = 0;
     for ( ;
          recv_buf_i < conn->recv_buf_len &&
+         conn->mthd_len < conn->mthd_sz - 1 &&
          conn->recv_buf[recv_buf_i] != ' ';
          recv_buf_i++, conn->mthd_len++)
     {
@@ -43,7 +58,15 @@ gn_extr_mthd (gn_conn_t * const conn)
         conn->prev_step = GN_CONN_STEP_INVALID;
         conn->step = GN_CONN_STEP_RECV_DATA; // TODO: Go to next step.
     }
-    else conn->step = GN_CONN_STEP_RECV_DATA;
+    else
+    {
+        if (conn->mthd_len == conn->mthd_sz - 1)
+        {
+            fprintf (stderr, "Request method too long.\n");
+            conn->step = GN_CONN_STEP_CLOSE;
+        }
+        else conn->step = GN_CONN_STEP_RECV_DATA;
+    }
 }
 
 int
