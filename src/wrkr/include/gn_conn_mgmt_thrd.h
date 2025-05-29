@@ -16,12 +16,14 @@ void *
 gn_conn_mgmt_thrd (void * const p);
 
 int
-gn_close (int * const fd);
-
-int
-gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn);
+gn_conn_list_push_back (gn_conn_list_t * const list,
+                        gn_conn_t * const conn);
 
 void
-gn_conn_list_remove (gn_conn_list_t * const list, gn_conn_t * const conn);
+gn_conn_list_remove (gn_conn_list_t * const list,
+                     gn_conn_t * const conn);
+
+void
+gn_free_conn (gn_conn_t ** const conn);
 
 #endif // GN_CONN_MGMT_THRD_H

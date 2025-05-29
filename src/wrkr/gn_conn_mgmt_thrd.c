@@ -3,22 +3,6 @@
 #include <arpa/inet.h> // TODO: Remove.
 
 void
-gn_free_conn (gn_conn_t ** conn);
-
-void
-gn_free_conn (gn_conn_t ** conn)
-{
-    if (conn == NULL) return;
-
-    gn_close (&(*conn)->fd);
-    free ((*conn)->recv_buf);
-    free ((*conn)->saddr);
-
-    free (*conn);
-    *conn = NULL;
-}
-
-void
 gn_recv_data (gn_conn_t * const conn);
 
 void
@@ -61,8 +45,7 @@ gn_conn_mgmt_thrd (void * const p)
     atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_RUNNING, memory_order_release);
 
     // Connections list.
-    gn_conn_list_t conn_list;
-    memset (&conn_list, 0, sizeof (conn_list));
+    gn_conn_list_t conn_list = { 0 };
 
     bool stop = false;
     bool main_loop = true;

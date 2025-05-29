@@ -52,6 +52,7 @@ wrkr_files = files(
     'src/wrkr/gn_conn_mgmt_thrd_data_list_push_back.c',
     'src/wrkr/gn_conn_mgmt_thrd_data_list_remove.c',
     'src/wrkr/gn_conn_mgmt_thrd.c',
+    'src/wrkr/gn_free_conn.c',
     'src/wrkr/gn_ipc_conn.c',
     'src/wrkr/gn_recv_serv_sock.c',
     'src/wrkr/gn_recv_serv_socks.c',
