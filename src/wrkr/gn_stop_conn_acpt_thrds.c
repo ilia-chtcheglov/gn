@@ -3,6 +3,7 @@
 void
 gn_stop_conn_acpt_thrds (gn_conn_acpt_thrd_data_list_t * const list)
 {
+    printf ("Stopping connection acceptance threads.\n");
     while (list->len > 0)
     {
         gn_conn_acpt_thrd_data_t * data = list->head;

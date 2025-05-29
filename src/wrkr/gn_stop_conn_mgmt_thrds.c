@@ -3,6 +3,7 @@
 void
 gn_stop_conn_mgmt_thrds (gn_conn_mgmt_thrd_data_list_t * const list)
 {
+    printf ("Stopping connection management threads.\n");
     while (list->len > 0)
     {
         gn_conn_mgmt_thrd_data_t * data = list->head;

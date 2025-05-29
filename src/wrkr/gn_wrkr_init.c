@@ -43,9 +43,7 @@ gn_wrkr_init (int ipc_sock,
 
     gn_wrkr_main (ipc_sock);
 
-    printf ("Stopping connection acceptance threads.\n");
     gn_stop_conn_acpt_thrds (&conn_acpt_thrd_data_list);
-    printf ("Stopping connection management threads.\n");
     gn_stop_conn_mgmt_thrds (&conn_mgmt_thrd_data_list);
 
     labl_gn_recv_serv_socks_failed:
