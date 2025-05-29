@@ -1,7 +1,9 @@
 #include <gn_conn_mgmt_thrd.h>
 
 #include <arpa/inet.h> // TODO: Remove.
+#include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 void
 gn_recv_data (gn_conn_t * const conn);
@@ -15,24 +17,44 @@ gn_recv_data (gn_conn_t * const conn)
     {
         case -1:
         {
-            // TODO: Check errno.
+            switch (errno)
+            {
+                case EINTR:
+                    break;
+                case EAGAIN:
+                {
+                    const time_t t = time (NULL);
+                    // Timeout after 10 seconds.
+                    if (t == conn->last_io + 10)
+                    {
+                        printf ("Connection timeout.\n");
+                        conn->step = GN_CONN_STEP_CLOSE;
+                    }
+                    break;
+                }
+                // TODO: Check for other errno values such as EBADF.
+                default:
+                {
+                    fprintf (stderr, "Failed to receive HTTP client data. %s.\n", strerror (errno));
+                    conn->step = GN_CONN_STEP_CLOSE;
+                }
+            }
             break;
         }
         case 0:
         {
-            printf ("Client disconnected.\n");
+            printf ("Client disconnected.\n"); // TODO: Remove.
             conn->step = GN_CONN_STEP_CLOSE;
-            return;
+            break;
         }
         default:
         {
             conn->recv_buf_len += (uint32_t)rrecv;
             conn->recv_buf[conn->recv_buf_len] = '\0';
-            printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf);
+            conn->step = conn->prev_step;
+            printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
         }
     }
-
-    conn->step = conn->prev_step;
 }
 
 void

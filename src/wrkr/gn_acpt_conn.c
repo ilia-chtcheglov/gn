@@ -107,6 +107,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     conn->fd = raccept4;
     conn->sport = sport;
+    time (&conn->last_io); // TODO: Check return value.
     conn->step = GN_CONN_STEP_RECV_DATA;
     conn->prev_step = GN_CONN_STEP_EXTR_MTHD;
 
