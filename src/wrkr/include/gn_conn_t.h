@@ -13,6 +13,9 @@ struct gn_conn_t
     gn_conn_step_e step;
     char *         saddr;
     uint16_t       sport;
+    char *         recv_buf;
+    uint32_t       recv_buf_len;
+    uint32_t       recv_buf_sz;
     gn_conn_t *    prev;
     gn_conn_t *    next;
 };

@@ -8,13 +8,13 @@ gn_recv_data (gn_conn_t * const conn);
 void
 gn_recv_data (gn_conn_t * const conn)
 {
-    char buf[1024];
-    const ssize_t rrecv = recv (conn->fd, buf, sizeof (buf) - 1, 0);
+    const ssize_t rrecv = recv (conn->fd, &conn->recv_buf[conn->recv_buf_len],
+                                conn->recv_buf_sz - conn->recv_buf_len - 1, 0);
     if (rrecv > 0)
     {
-        const size_t buf_len = (size_t)rrecv;
-        buf[buf_len] = '\0';
-        printf ("Received (%lu) \"%s\"\n", buf_len, buf);
+        conn->recv_buf_len += (uint32_t)rrecv;
+        conn->recv_buf[conn->recv_buf_len] = '\0';
+        printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf);
     }
 }
 
