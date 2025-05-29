@@ -22,7 +22,7 @@ gn_recv_data (gn_conn_t * const conn)
         {
             printf ("Client disconnected.\n");
             conn->step = GN_CONN_STEP_CLOSE;
-            break;
+            return;
         }
         default:
         {
@@ -87,10 +87,14 @@ gn_close_conn (gn_conn_t * const conn)
     conn->saddr = NULL;
 }
 
-void
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+bool
 gn_process_conn (gn_conn_t * const conn);
 
-void
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+bool
 gn_process_conn (gn_conn_t * const conn)
 {
     switch (conn->step)
@@ -107,8 +111,9 @@ gn_process_conn (gn_conn_t * const conn)
         }
         case GN_CONN_STEP_CLOSE:
         {
+            printf ("Closing connection %p\n", (void *)conn);
             gn_close_conn (conn);
-            break;
+            return true;
         }
         case GN_CONN_STEP_INVALID:
         default:
@@ -117,6 +122,8 @@ gn_process_conn (gn_conn_t * const conn)
             conn->step = GN_CONN_STEP_CLOSE;
         }
     }
+
+    return false;
 }
 
 void *
@@ -134,22 +141,23 @@ gn_conn_mgmt_thrd (void * const p)
     {
         // Process connections one by one.
         gn_conn_t * conn = conn_list.head;
-        gn_conn_t * next_conn = NULL;
         for (uint32_t i = 0; i < conn_list.len; i++)
         {
-            gn_process_conn (conn);
-
-            // If the thread has to stop we close and remove the connection from the list.
-            if (!stop) next_conn = conn->next;
-            else
+            printf ("Processing connection %p\n", (void *)conn);
+            if (stop) conn->step = GN_CONN_STEP_CLOSE;
+            if (!gn_process_conn (conn))
             {
-                gn_conn_list_remove (&conn_list, conn);
-                if (conn_list.len > 0) next_conn = conn->next;
-                else next_conn = NULL;
-
-                gn_free_conn (&conn);
+                conn = conn->next;
+                continue;
             }
 
+            gn_conn_list_remove (&conn_list, conn);
+            gn_conn_t * next_conn;
+            if (conn_list.len > 0) next_conn = conn->next;
+            else next_conn = NULL;
+
+            printf ("Freeing connection %p\n", (void *)conn);
+            gn_free_conn (&conn);
             conn = next_conn;
         }
 
