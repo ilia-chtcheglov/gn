@@ -21,6 +21,9 @@ struct gn_conn_t
     char *         mthd;
     uint32_t       mthd_len;
     uint32_t       mthd_sz;
+    char *         uri;
+    uint32_t       uri_len;
+    uint32_t       uri_sz;
     time_t         last_io;
     gn_conn_t *    prev;
     gn_conn_t *    next;

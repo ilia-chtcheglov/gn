@@ -91,7 +91,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_saddr;
     }
 
-    #define GN_MTHD_SZ 32
+    #define GN_MTHD_SZ 16
     conn->mthd = (char *)malloc (GN_MTHD_SZ);
     if (conn->mthd == NULL)
     {
@@ -99,11 +99,22 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_recv_buf;
     }
 
+    #define GN_URI_SZ 16
+    conn->uri = (char *)malloc (GN_URI_SZ);
+    if (conn->uri == NULL)
+    {
+        fprintf (stderr, "Failed to allocate request URI buffer.\n");
+        goto labl_free_mthd;
+    }
+
     conn->recv_buf_len = 0;
     conn->recv_buf_sz = GN_RECV_BUF_SZ;
 
     conn->mthd_len = 0;
     conn->mthd_sz = GN_MTHD_SZ;
+
+    conn->uri_len = 0;
+    conn->uri_sz = GN_URI_SZ;
 
     conn->fd = raccept4;
     conn->sport = sport;
@@ -132,6 +143,9 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     fprintf (stderr, "Failed to pass connection to connection management thread.\n");
 
+    free (conn->uri);
+
+    labl_free_mthd:
     free (conn->mthd);
 
     labl_free_recv_buf:
