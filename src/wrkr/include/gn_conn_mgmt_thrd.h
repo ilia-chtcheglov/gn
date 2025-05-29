@@ -26,4 +26,7 @@ gn_conn_list_remove (gn_conn_list_t * const list,
 void
 gn_free_conn (gn_conn_t ** const conn);
 
+void
+gn_sleep_ms (const uint32_t ms);
+
 #endif // GN_CONN_MGMT_THRD_H

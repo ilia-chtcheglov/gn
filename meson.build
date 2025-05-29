@@ -17,7 +17,8 @@ comn_files = files(
     'src/comn/gn_prse_cmdl_args.c',
     'src/comn/gn_serv_sock_list_pop_front.c',
     'src/comn/gn_serv_sock_list_push_back.c',
-    'src/comn/gn_set_sig_hndlr.c'
+    'src/comn/gn_set_sig_hndlr.c',
+    'src/comn/gn_sleep_ms.c'
 )
 
 mstr_files = files(

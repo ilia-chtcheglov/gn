@@ -59,17 +59,14 @@ gn_conn_mgmt_thrd (void * const p)
             gn_process_conn (conn);
 
             // If the thread has to stop we close and remove the connection from the list.
-            if (stop)
+            if (!stop) next_conn = conn->next;
+            else
             {
                 gn_conn_list_remove (&conn_list, conn);
                 if (conn_list.len > 0) next_conn = conn->next;
                 else next_conn = NULL;
 
                 gn_free_conn (&conn);
-            }
-            else
-            {
-                next_conn = conn->next;
             }
 
             conn = next_conn;
@@ -114,15 +111,7 @@ gn_conn_mgmt_thrd (void * const p)
                 atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_STOPPING, memory_order_release);
                 stop = true;
             }
-            else
-            {
-                const struct timespec ts = {
-                    .tv_sec = 0,
-                    .tv_nsec = 100 * 1000000 // 100ms
-                };
-                /* const int rclock_nanosleep = */ clock_nanosleep (CLOCK_MONOTONIC, 0, &ts, NULL);
-                // TODO: Check rclock_nanosleep.
-            }
+            else gn_sleep_ms (100);
         }
         else if (conn_list.len == 0)
         {
