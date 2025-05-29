@@ -16,6 +16,33 @@ gn_recv_data (gn_conn_t * const conn)
         conn->recv_buf[conn->recv_buf_len] = '\0';
         printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf);
     }
+
+    conn->step = conn->prev_step;
+}
+
+void
+gn_extr_mthd (gn_conn_t * const conn);
+
+void
+gn_extr_mthd (gn_conn_t * const conn)
+{
+    size_t recv_buf_i = 0;
+    for ( ;
+         recv_buf_i < conn->recv_buf_len &&
+         conn->recv_buf[recv_buf_i] != ' ';
+         recv_buf_i++, conn->mthd_len++)
+    {
+        conn->mthd[conn->mthd_len] = conn->recv_buf[recv_buf_i];
+    }
+
+    conn->mthd[conn->mthd_len] = '\0';
+    if (conn->recv_buf[recv_buf_i] == ' ')
+    {
+        printf ("Request method (%u) \"%s\".\n", conn->mthd_len, conn->mthd);
+        conn->prev_step = GN_CONN_STEP_INVALID;
+        conn->step = GN_CONN_STEP_RECV_DATA; // TODO: Go to next step.
+    }
+    else conn->step = GN_CONN_STEP_RECV_DATA;
 }
 
 void
@@ -26,11 +53,17 @@ gn_process_conn (gn_conn_t * const conn)
 {
     switch (conn->step)
     {
+        case GN_CONN_STEP_EXTR_MTHD:
+        {
+            gn_extr_mthd (conn);
+            break;
+        }
         case GN_CONN_STEP_RECV_DATA:
         {
             gn_recv_data (conn);
             break;
         }
+        case GN_CONN_STEP_INVALID:
         default:
         {
             fprintf (stderr, "Invalid connection step %u.\n", conn->step);
@@ -77,7 +110,7 @@ gn_conn_mgmt_thrd (void * const p)
         /*
          * If the local stop variable isn't true we check the atomic stop variable.
          * If the atomic one is true we set the local one to true and signal that the thread is stopping.
-         * If the thread doesn't have to stop we wait 1 second to avoid 100% CPU usage.
+         * If the thread doesn't have to stop it waits 100 milliseconds to avoid 100% CPU usage.
          */
         if (!stop)
         {

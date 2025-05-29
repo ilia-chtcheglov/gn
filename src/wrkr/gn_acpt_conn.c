@@ -83,19 +83,32 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_conn;
     }
 
-    conn->recv_buf = (char *)malloc (7);
+    #define GN_RECV_BUF_SZ 1024
+    conn->recv_buf = (char *)malloc (GN_RECV_BUF_SZ);
     if (conn->recv_buf == NULL)
     {
         fprintf (stderr, "Failed to allocate receive buffer.\n");
         goto labl_free_saddr;
     }
 
+    #define GN_MTHD_SZ 32
+    conn->mthd = (char *)malloc (GN_MTHD_SZ);
+    if (conn->mthd == NULL)
+    {
+        fprintf (stderr, "Failed to allocate request method buffer.\n");
+        goto labl_free_recv_buf;
+    }
+
     conn->recv_buf_len = 0;
-    conn->recv_buf_sz = 7;
+    conn->recv_buf_sz = GN_RECV_BUF_SZ;
+
+    conn->mthd_len = 0;
+    conn->mthd_sz = GN_MTHD_SZ;
 
     conn->fd = raccept4;
     conn->sport = sport;
     conn->step = GN_CONN_STEP_RECV_DATA;
+    conn->prev_step = GN_CONN_STEP_EXTR_MTHD;
 
       // Store source IP in the connection structure.
     strcpy (conn->saddr, saddr);
@@ -118,6 +131,9 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     fprintf (stderr, "Failed to pass connection to connection management thread.\n");
 
+    free (conn->mthd);
+
+    labl_free_recv_buf:
     free (conn->recv_buf);
 
     labl_free_saddr:

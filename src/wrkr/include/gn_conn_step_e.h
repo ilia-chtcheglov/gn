@@ -3,6 +3,8 @@
 
 typedef enum
 {
+    GN_CONN_STEP_INVALID,
+    GN_CONN_STEP_EXTR_MTHD,
     GN_CONN_STEP_RECV_DATA
 } gn_conn_step_e;
 
