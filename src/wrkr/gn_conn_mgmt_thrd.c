@@ -1,6 +1,7 @@
 #include <gn_conn_mgmt_thrd.h>
 
 #include <arpa/inet.h> // TODO: Remove.
+#include <stdlib.h>
 
 void
 gn_recv_data (gn_conn_t * const conn);
@@ -45,6 +46,24 @@ gn_extr_mthd (gn_conn_t * const conn)
     else conn->step = GN_CONN_STEP_RECV_DATA;
 }
 
+int
+gn_close (int * const fd);
+
+void
+gn_close_conn (gn_conn_t * const conn);
+
+void
+gn_close_conn (gn_conn_t * const conn)
+{
+    gn_close (&conn->fd);
+    free (conn->mthd);
+    conn->mthd = NULL;
+    free (conn->recv_buf);
+    conn->recv_buf = NULL;
+    free (conn->saddr);
+    conn->saddr = NULL;
+}
+
 void
 gn_process_conn (gn_conn_t * const conn);
 
@@ -63,10 +82,16 @@ gn_process_conn (gn_conn_t * const conn)
             gn_recv_data (conn);
             break;
         }
+        case GN_CONN_STEP_CLOSE:
+        {
+            gn_close_conn (conn);
+            break;
+        }
         case GN_CONN_STEP_INVALID:
         default:
         {
             fprintf (stderr, "Invalid connection step %u.\n", conn->step);
+            conn->step = GN_CONN_STEP_CLOSE;
         }
     }
 }
