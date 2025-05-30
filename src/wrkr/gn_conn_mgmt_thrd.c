@@ -209,13 +209,60 @@ gn_extr_prot (gn_conn_t * const conn)
         printf ("Request protocol (%u) \"%s\".\n", conn->prot_len, conn->prot);
 
         conn->prev_step = GN_CONN_STEP_INVALID;
-        conn->step = GN_CONN_STEP_RECV_DATA; // TODO: Go to next step.
+        conn->step = GN_CONN_STEP_EXTR_HDRN; // TODO: Go to next step.
     }
     else
     {
         if (conn->prot_len == conn->prot_sz - 1)
         {
             fprintf (stderr, "Request protocol too long.\n");
+            conn->step = GN_CONN_STEP_CLOSE;
+        }
+        else conn->step = GN_CONN_STEP_RECV_DATA;
+    }
+}
+
+void
+gn_extr_hdrn (gn_conn_t * const conn);
+
+void
+gn_extr_hdrn (gn_conn_t * const conn)
+{
+    size_t recv_buf_i = 0;
+    for ( ;
+         recv_buf_i < conn->recv_buf_len &&
+         conn->hdrn_len < conn->hdrn_sz - 1 &&
+         conn->recv_buf[recv_buf_i] != ':';
+         recv_buf_i++, conn->hdrn_len++)
+    {
+        conn->hdrn[conn->hdrn_len] = conn->recv_buf[recv_buf_i];
+    }
+
+    conn->hdrn[conn->hdrn_len] = '\0';
+    if (conn->recv_buf[recv_buf_i] == ':')
+    {
+        printf ("Header name (%u) \"%s\".\n", conn->hdrn_len, conn->hdrn);
+        // Move the rest of the data to the beginning of the receive buffer.
+        size_t i = 0;
+        size_t j = (size_t)conn->hdrn_len + 1;
+        while (j < conn->recv_buf_len)
+        {
+            conn->recv_buf[i] = conn->recv_buf[j];
+            i++;
+            j++;
+        }
+        conn->recv_buf_len -= (uint32_t)conn->hdrn_len + 1;
+        conn->recv_buf[conn->recv_buf_len] = '\0';
+        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
+
+        conn->prev_step = GN_CONN_STEP_INVALID;
+        conn->step = GN_CONN_STEP_RECV_DATA; // TODO: Go to next step.
+    }
+    else
+    {
+        if (conn->hdrn_len == conn->hdrn_sz - 1)
+        {
+            fprintf (stderr, "Request header name too long.\n");
             conn->step = GN_CONN_STEP_CLOSE;
         }
         else conn->step = GN_CONN_STEP_RECV_DATA;
@@ -232,6 +279,8 @@ void
 gn_close_conn (gn_conn_t * const conn)
 {
     gn_close (&conn->fd);
+    free (conn->hdrn);
+    conn->hdrn = NULL;
     free (conn->prot);
     conn->prot = NULL;
     free (conn->uri);
@@ -269,6 +318,11 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_EXTR_PROT:
         {
             gn_extr_prot (conn);
+            break;
+        }
+        case GN_CONN_STEP_EXTR_HDRN:
+        {
+            gn_extr_hdrn (conn);
             break;
         }
         case GN_CONN_STEP_RECV_DATA:

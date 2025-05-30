@@ -27,6 +27,9 @@ struct gn_conn_t
     char *         prot;
     uint8_t        prot_len;
     uint8_t        prot_sz;
+    char *         hdrn;
+    uint8_t        hdrn_len;
+    uint8_t        hdrn_sz;
     time_t         last_io;
     gn_conn_t *    prev;
     gn_conn_t *    next;

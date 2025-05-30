@@ -115,6 +115,14 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_uri;
     }
 
+    #define GN_HDRN_SZ 255
+    conn->hdrn = (char *)malloc (GN_HDRN_SZ);
+    if (conn->hdrn == NULL)
+    {
+        fprintf (stderr, "Failed to allocate request header name buffer.\n");
+        goto labl_free_prot;
+    }
+
     conn->recv_buf_len = 0;
     conn->recv_buf_sz = GN_RECV_BUF_SZ;
 
@@ -126,6 +134,9 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     conn->prot_len = 0;
     conn->prot_sz = GN_PROT_SZ;
+
+    conn->hdrn_len = 0;
+    conn->hdrn_sz = GN_HDRN_SZ;
 
     conn->fd = raccept4;
     conn->sport = sport;
@@ -154,6 +165,9 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     fprintf (stderr, "Failed to pass connection to connection management thread.\n");
 
+    free (conn->hdrn);
+
+    labl_free_prot:
     free (conn->prot);
 
     labl_free_uri:
