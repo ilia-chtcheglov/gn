@@ -75,9 +75,11 @@ gn_recv_data (gn_conn_t * const conn)
     }
 }
 
+__attribute__((nonnull))
 void
 gn_extr_mthd (gn_conn_t * const conn);
 
+__attribute__((nonnull))
 void
 gn_extr_mthd (gn_conn_t * const conn)
 {
@@ -122,9 +124,11 @@ gn_extr_mthd (gn_conn_t * const conn)
     }
 }
 
+__attribute__((nonnull))
 void
 gn_extr_uri (gn_conn_t * const conn);
 
+__attribute__((nonnull))
 void
 gn_extr_uri (gn_conn_t * const conn)
 {
@@ -169,9 +173,11 @@ gn_extr_uri (gn_conn_t * const conn)
     }
 }
 
+__attribute__((nonnull))
 void
 gn_extr_prot (gn_conn_t * const conn);
 
+__attribute__((nonnull))
 void
 gn_extr_prot (gn_conn_t * const conn)
 {
@@ -223,9 +229,11 @@ gn_extr_prot (gn_conn_t * const conn)
     }
 }
 
+__attribute__((nonnull))
 void
 gn_extr_hdrn (gn_conn_t * const conn);
 
+__attribute__((nonnull))
 void
 gn_extr_hdrn (gn_conn_t * const conn)
 {
@@ -281,9 +289,11 @@ gn_extr_hdrn (gn_conn_t * const conn)
     }
 }
 
+__attribute__((nonnull))
 void
 gn_extr_hdrv (gn_conn_t * const conn);
 
+__attribute__((nonnull))
 void
 gn_extr_hdrv (gn_conn_t * const conn)
 {
