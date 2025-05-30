@@ -142,14 +142,67 @@ gn_extr_uri (gn_conn_t * const conn)
     if (conn->recv_buf[recv_buf_i] == ' ')
     {
         printf ("Request URI (%u) \"%s\".\n", conn->uri_len, conn->uri);
+        // Move the rest of the data to the beginning of the receive buffer.
+        size_t i = 0;
+        size_t j = conn->uri_len + 1;
+        while (j < conn->recv_buf_len)
+        {
+            conn->recv_buf[i] = conn->recv_buf[j];
+            i++;
+            j++;
+        }
+        conn->recv_buf_len -= conn->uri_len + 1;
+        conn->recv_buf[conn->recv_buf_len] = '\0';
+        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
+
         conn->prev_step = GN_CONN_STEP_INVALID;
-        conn->step = GN_CONN_STEP_RECV_DATA; // TODO: Go to next step.
+        conn->step = GN_CONN_STEP_EXTR_PROT; // TODO: Go to next step.
     }
     else
     {
         if (conn->uri_len == conn->uri_sz - 1)
         {
             fprintf (stderr, "Request URI too long.\n");
+            conn->step = GN_CONN_STEP_CLOSE;
+        }
+        else conn->step = GN_CONN_STEP_RECV_DATA;
+    }
+}
+
+void
+gn_extr_prot (gn_conn_t * const conn);
+
+void
+gn_extr_prot (gn_conn_t * const conn)
+{
+    size_t recv_buf_i = 0;
+    for ( ;
+         recv_buf_i < conn->recv_buf_len &&
+         conn->prot_len < conn->prot_sz - 1 &&
+         conn->recv_buf[recv_buf_i] != '\n';
+         recv_buf_i++, conn->prot_len++)
+    {
+        conn->prot[conn->prot_len] = conn->recv_buf[recv_buf_i];
+    }
+
+    conn->prot[conn->prot_len] = '\0';
+    if (conn->recv_buf[recv_buf_i] == '\n')
+    {
+        if (conn->prot_len > 0 && conn->prot[conn->prot_len - 1] == '\r')
+        {
+            conn->prot[conn->prot_len - 1] = '\0';
+            conn->prot_len--;
+        }
+
+        printf ("Request protocol (%u) \"%s\".\n", conn->prot_len, conn->prot);
+        conn->prev_step = GN_CONN_STEP_INVALID;
+        conn->step = GN_CONN_STEP_RECV_DATA; // TODO: Go to next step.
+    }
+    else
+    {
+        if (conn->prot_len == conn->prot_sz - 1)
+        {
+            fprintf (stderr, "Request protocol too long.\n");
             conn->step = GN_CONN_STEP_CLOSE;
         }
         else conn->step = GN_CONN_STEP_RECV_DATA;
@@ -166,6 +219,8 @@ void
 gn_close_conn (gn_conn_t * const conn)
 {
     gn_close (&conn->fd);
+    free (conn->prot);
+    conn->prot = NULL;
     free (conn->uri);
     conn->uri = NULL;
     free (conn->mthd);
@@ -196,6 +251,11 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_EXTR_URI:
         {
             gn_extr_uri (conn);
+            break;
+        }
+        case GN_CONN_STEP_EXTR_PROT:
+        {
+            gn_extr_prot (conn);
             break;
         }
         case GN_CONN_STEP_RECV_DATA:
