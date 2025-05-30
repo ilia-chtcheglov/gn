@@ -30,6 +30,9 @@ struct gn_conn_t
     char *         hdrn;
     uint8_t        hdrn_len;
     uint8_t        hdrn_sz;
+    char *         hdrv;
+    uint32_t       hdrv_len;
+    uint32_t       hdrv_sz;
     time_t         last_io;
     gn_conn_t *    prev;
     gn_conn_t *    next;
