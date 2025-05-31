@@ -93,7 +93,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_saddr;
     }
 
-    #define GN_SEND_BUF_SZ 1024
+    #define GN_SEND_BUF_SZ 65536
     conn->send_buf = (char *)malloc (GN_SEND_BUF_SZ);
     if (conn->send_buf == NULL)
     {
