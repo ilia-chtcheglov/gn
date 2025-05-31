@@ -75,7 +75,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     memset (conn, 0, sizeof (gn_conn_t));
     printf ("Allocated conn: %p\n", (void *)conn); // TODO: Remove.
 
-    if (gn_htbl_init (&conn->req_hdrs, 4) != EXIT_SUCCESS) goto labl_free_conn;
+    if (gn_htbl_init (&conn->req_hdrs, 16) != EXIT_SUCCESS) goto labl_free_conn;
 
     // Allocate buffer to store the source IP.
     conn->saddr = (char *)malloc (strlen (saddr) + 1);
