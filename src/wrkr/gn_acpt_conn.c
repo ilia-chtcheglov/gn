@@ -109,7 +109,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_send_buf;
     }
 
-    #define GN_URI_SZ 16
+    #define GN_URI_SZ 65536
     conn->uri = (char *)malloc (GN_URI_SZ);
     if (conn->uri == NULL)
     {
