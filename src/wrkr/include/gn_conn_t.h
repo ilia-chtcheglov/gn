@@ -1,6 +1,8 @@
 #ifndef GN_CONN_T_H
 #define GN_CONN_T_H
 
+#include <gn_htbl_t.h>
+
 #include <gn_conn_step_e.h>
 
 #include <stdint.h>
@@ -15,6 +17,7 @@ struct gn_conn_t
     gn_conn_step_e prev_step;
     char *         saddr;
     uint16_t       sport;
+    gn_htbl_t      req_hdrs;
     char *         recv_buf;
     uint32_t       recv_buf_len;
     uint32_t       recv_buf_sz;
