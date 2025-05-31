@@ -74,7 +74,7 @@ gn_extr_hdrn (gn_conn_t * const conn)
             printf ("End of request headers.\n");
             conn->recv_buf[0] = '\0';
             gn_htbl_dump (&conn->req_hdrs);
-            conn->step = GN_CONN_STEP_RECV_DATA;
+            conn->step = GN_CONN_STEP_OPEN_FILE;
             break;
         }
         default:

@@ -13,6 +13,7 @@ typedef struct gn_conn_t gn_conn_t;
 struct gn_conn_t
 {
     int            sock;
+    int            fd;
     gn_conn_step_e step;
     gn_conn_step_e prev_step;
     char *         saddr;

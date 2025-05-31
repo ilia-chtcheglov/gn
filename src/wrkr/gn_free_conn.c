@@ -5,6 +5,7 @@ gn_free_conn (gn_conn_t ** const conn)
 {
     if (conn == NULL) return;
 
+    gn_close (&(*conn)->fd);
     gn_close (&(*conn)->sock);
     free ((*conn)->hdrv);
     free ((*conn)->hdrn);
