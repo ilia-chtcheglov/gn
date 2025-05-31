@@ -12,7 +12,7 @@ gn_recv_data (gn_conn_t * const conn)
      * If buffer size is 10 bytes and length (data inside) is 4, recv() will receive 10 - 4 - 1 = 5.
      * The final buffer length will be 4 + 5 = 9 which is less than 10, with room for the NULL byte.
      */
-    const ssize_t rrecv = recv (conn->fd, &conn->recv_buf[conn->recv_buf_len],
+    const ssize_t rrecv = recv (conn->sock, &conn->recv_buf[conn->recv_buf_len],
                                 conn->recv_buf_sz - conn->recv_buf_len - 1, 0);
     switch (rrecv)
     {

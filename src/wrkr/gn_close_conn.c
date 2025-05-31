@@ -3,7 +3,7 @@
 void
 gn_close_conn (gn_conn_t * const conn)
 {
-    gn_close (&conn->fd);
+    gn_close (&conn->sock);
     free (conn->hdrv);
     conn->hdrv = NULL;
     free (conn->hdrn);

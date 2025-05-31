@@ -12,7 +12,7 @@ typedef struct gn_conn_t gn_conn_t;
 
 struct gn_conn_t
 {
-    int            fd;
+    int            sock;
     gn_conn_step_e step;
     gn_conn_step_e prev_step;
     char *         saddr;
