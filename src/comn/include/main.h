@@ -14,7 +14,7 @@ gn_chck_cmdl_args (const int argc,
 
 __attribute__((nonnull))
 void
-gn_close_serv_socks (gn_serv_sock_list_t * const serv_sock_list);
+gn_close_serv_socks (gn_serv_sock_list_t * const list);
 
 __attribute__((nonnull))
 void
