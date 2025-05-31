@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 int
 gn_close (int * const fd);
@@ -91,10 +92,15 @@ __attribute__((nonnull))
 void
 gn_send_hdrs (gn_conn_t * const conn)
 {
-    printf ("Sending headers (%u) \"%s\".\n", conn->send_buf_len, conn->send_buf);
-    const ssize_t rsend = send (conn->sock, conn->send_buf, conn->send_buf_len, 0);
+    printf ("Sending headers (%p) (%u) \"%s\".\n", conn->send_buf, conn->send_buf_len, conn->send_buf);
+    // Test code.
+    size_t to_send = conn->send_buf_len;
+    // if (to_send > 10) to_send = 10;
+
+    const ssize_t rsend = send (conn->sock, conn->send_buf, to_send, 0);
     switch (rsend)
     {
+        // TODO: Check if the client doesn't want to read what we're sending.
         case 0:
             break;
         case -1:
@@ -105,7 +111,10 @@ gn_send_hdrs (gn_conn_t * const conn)
                 case EINTR:
                 case ENOBUFS:
                 case ENOMEM:
+                {
+                    conn->last_io = time (NULL);
                     break;
+                }
                 case EBADF:
                 case EFAULT:
                 case EINVAL:
@@ -123,6 +132,7 @@ gn_send_hdrs (gn_conn_t * const conn)
         }
         default:
         {
+            conn->last_io = time (NULL);
             // Move the rest of the data to the beginning of the send buffer.
             uint32_t i = 0;
             uint32_t j = (uint32_t)rsend;
@@ -154,6 +164,58 @@ gn_send_hdrs (gn_conn_t * const conn)
                     }
                 }
             }
+        }
+    }
+}
+
+__attribute__((nonnull))
+void
+gn_send_file (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_send_file (gn_conn_t * const conn)
+{
+    printf ("Reading file. Buffer %p: %u/%u. Adding to index %u (max %u).\n",
+            conn->send_buf,
+            conn->send_buf_len,
+            conn->send_buf_sz,
+            conn->send_buf_len,
+            conn->send_buf_sz - conn->send_buf_len - 1);
+
+    const ssize_t rread = read (conn->fd, &conn->send_buf[conn->send_buf_len],
+                                conn->send_buf_sz - conn->send_buf_len - 1);
+    switch (rread)
+    {
+        case -1:
+        {
+            switch (errno)
+            {
+                case EAGAIN:
+                case EINTR:
+                case EIO:
+                {
+                    conn->last_io = time (NULL);
+                    break;
+                }
+                default:
+                {
+                    fprintf (stderr, "Failed to read file. %s.\n", strerror (errno));
+                    conn->step = GN_CONN_STEP_CLOSE;
+                }
+            }
+            break;
+        }
+        case 0:
+        {
+            conn->step = GN_CONN_STEP_CLOSE;
+            break;
+        }
+        default:
+        {
+            conn->send_buf_len += (uint32_t)rread;
+            conn->send_buf[conn->send_buf_len] = '\0';
+            gn_send_hdrs (conn);
         }
     }
 }
@@ -202,6 +264,7 @@ gn_process_conn (gn_conn_t * const conn)
         }
         case GN_CONN_STEP_SEND_FILE:
         {
+            gn_send_file (conn);
             break;
         }
         case GN_CONN_STEP_RECV_DATA:
