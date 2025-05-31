@@ -8,6 +8,7 @@ gn_wrkr_init (int ipc_sock,
               const char * const ipc_addr_str)
 {
     signal (SIGINT, SIG_IGN);
+    signal (SIGPIPE, SIG_IGN);
 
     // Connect to the master process.
     if (gn_ipc_conn (ipc_sock, ipc_addr_str) != EXIT_SUCCESS) return EXIT_FAILURE;
