@@ -22,6 +22,9 @@ struct gn_conn_t
     char *         recv_buf;
     uint32_t       recv_buf_len;
     uint32_t       recv_buf_sz;
+    char *         send_buf;
+    uint32_t       send_buf_len;
+    uint32_t       send_buf_sz;
     char *         mthd;
     uint32_t       mthd_len;
     uint32_t       mthd_sz;

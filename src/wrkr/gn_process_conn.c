@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 
 int
 gn_close (int * const fd);
@@ -16,6 +17,8 @@ __attribute__((nonnull))
 void
 gn_open_file (gn_conn_t * const conn)
 {
+    conn->prev_step = GN_CONN_STEP_OPEN_FILE;
+
     const char * const document_root = "/srv/www/testa.local";
     const uint32_t document_root_len = strlen (document_root);
 
@@ -30,16 +33,92 @@ gn_open_file (gn_conn_t * const conn)
         if (conn->fd > -1)
         {
             printf ("Opened \"%s\".\n", abs_path);
-            // conn->step = GN_CONN_STEP_SEND_FILE;
+            strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n\r\n");
         }
-        else fprintf (stderr, "Failed to open \"%s\". %s.\n", abs_path, strerror (errno));
+        else
+        {
+            fprintf (stderr, "Failed to open \"%s\". %s.\n", abs_path, strerror (errno));
+            switch (errno)
+            {
+                case ENOENT:
+                {
+                    strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
+                    break;
+                }
+                default:
+                {
+                    strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                }
+            }
+        }
 
         free (abs_path);
         abs_path = NULL;
     }
-    else fprintf (stderr, "Failed to allocate buffer for absolute file path.\n");
+    else
+    {
+        fprintf (stderr, "Failed to allocate buffer for absolute file path.\n");
+        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+    }
 
-    conn->step = GN_CONN_STEP_CLOSE;
+    conn->send_buf_len = (uint32_t)strlen (conn->send_buf);
+    conn->step = GN_CONN_STEP_SEND_HDRS;
+}
+
+__attribute__((nonnull))
+void
+gn_send_hdrs (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_send_hdrs (gn_conn_t * const conn)
+{
+    printf ("Sending (%u) \"%s\".\n", conn->send_buf_len, conn->send_buf);
+    const ssize_t rsend = send (conn->sock, conn->send_buf, conn->send_buf_len, 0);
+    switch (rsend)
+    {
+        case 0:
+            break;
+        case -1:
+        {
+            switch (errno)
+            {
+                case EAGAIN:
+                case EINTR:
+                case ENOBUFS:
+                case ENOMEM:
+                    break;
+                case EBADF:
+                case EFAULT:
+                case EINVAL:
+                case ENOTCONN:
+                case ENOTSOCK:
+                case EPIPE:
+                default:
+                {
+                    gn_close (&conn->sock);
+                    conn->step = GN_CONN_STEP_CLOSE;
+                    break;
+                }
+            }
+            break;
+        }
+        default:
+        {
+            // Move the rest of the data to the beginning of the send buffer.
+            uint32_t i = 0;
+            uint32_t j = (uint32_t)rsend;
+            while (j < conn->send_buf_len)
+            {
+                conn->send_buf[i] = conn->send_buf[j];
+                i++;
+                j++;
+            }
+            conn->send_buf_len -= (uint32_t)rsend;
+            conn->send_buf[conn->send_buf_len] = '\0';
+            printf ("Remaining (%u) \"%s\"\n", conn->send_buf_len, conn->send_buf); // TODO: Remove.
+        }
+    }
 }
 
 __attribute__((nonnull))
@@ -77,6 +156,11 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_OPEN_FILE:
         {
             gn_open_file (conn);
+            break;
+        }
+        case GN_CONN_STEP_SEND_HDRS:
+        {
+            gn_send_hdrs (conn);
             break;
         }
         case GN_CONN_STEP_RECV_DATA:

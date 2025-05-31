@@ -12,6 +12,7 @@ gn_free_conn (gn_conn_t ** const conn)
     free ((*conn)->prot);
     free ((*conn)->uri);
     free ((*conn)->mthd);
+    free ((*conn)->send_buf);
     free ((*conn)->recv_buf);
     free ((*conn)->saddr);
     gn_htbl_free (&(*conn)->req_hdrs);
