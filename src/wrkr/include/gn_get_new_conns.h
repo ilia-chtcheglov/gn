@@ -5,6 +5,7 @@
 #include <gn_conn_list_t.h>
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 __attribute__((nonnull))
 void
@@ -12,7 +13,9 @@ gn_get_new_conns (gn_conn_mgmt_thrd_data_t * const data,
                   gn_conn_list_t * const conn_list,
                   const bool stop);
 
-int
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+bool
 gn_conn_list_push_back (gn_conn_list_t * const list,
                         gn_conn_t * const conn);
 

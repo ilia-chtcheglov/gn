@@ -1,18 +1,18 @@
 #include <gn_conn_list_push_back.h>
 
-int
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+bool
 gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn)
 {
     switch (list->len)
     {
+        case GN_CONN_LIST_LEN_MAX:
+            return EXIT_FAILURE;
         case 0:
         {
             list->head = list->tail = conn->prev = conn->next = conn;
             break;
-        }
-        case UINT32_MAX:
-        {
-            return 1;
         }
         default:
         {
@@ -25,5 +25,5 @@ gn_conn_list_push_back (gn_conn_list_t * const list, gn_conn_t * const conn)
     }
 
     list->len++;
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -1,17 +1,10 @@
 #include <gn_conn_mgmt_thrd.h>
 
-void
-gn_close_conn (gn_conn_t * const conn);
-
-__attribute__((nonnull))
-__attribute__((warn_unused_result))
-bool
-gn_process_conn (gn_conn_t * const conn);
-
 void *
 gn_conn_mgmt_thrd (void * const p)
 {
     gn_conn_mgmt_thrd_data_t * const data = (gn_conn_mgmt_thrd_data_t *)p;
+    // Signal that the thread is running.
     atomic_store_explicit (&data->state, GN_CONN_MGMT_THRD_STATE_RUNNING, memory_order_release);
 
     // Connections list.
@@ -23,7 +16,7 @@ gn_conn_mgmt_thrd (void * const p)
     {
         // Process connections one by one.
         gn_conn_t * conn = conn_list.head;
-        for (uint32_t i = 0; i < conn_list.len; i++)
+        for (gn_conn_list_len_t i = 0; i < conn_list.len; i++)
         {
             printf ("Processing connection %p\n", (void *)conn);
             if (stop) conn->step = GN_CONN_STEP_CLOSE;

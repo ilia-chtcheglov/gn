@@ -25,6 +25,11 @@ gn_get_new_conns (gn_conn_mgmt_thrd_data_t * const data,
                   gn_conn_list_t * const conn_list,
                   const bool stop);
 
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+bool
+gn_process_conn (gn_conn_t * const conn);
+
 void
 gn_sleep_ms (const uint32_t ms);
 

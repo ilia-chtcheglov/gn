@@ -22,7 +22,7 @@ gn_get_new_conns (gn_conn_mgmt_thrd_data_t * const data,
             // Turn the atomic_uintptr_t value into a pointer to a connection structure.
             gn_conn_t * new_conn = (gn_conn_t *)data->new_conns[i];
             // Close the connection if the thread has to stop or the connections list is full.
-            if (stop || gn_conn_list_push_back (conn_list, new_conn) != 0)
+            if (stop || gn_conn_list_push_back (conn_list, new_conn) != EXIT_SUCCESS)
             {
                 gn_free_conn (&new_conn);
             }
