@@ -144,6 +144,9 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     conn->recv_buf_len = 0;
     conn->recv_buf_sz = GN_RECV_BUF_SZ;
 
+    conn->send_buf_len = 0;
+    conn->send_buf_sz = GN_SEND_BUF_SZ;
+
     conn->mthd_len = 0;
     conn->mthd_sz = GN_MTHD_SZ;
 
