@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
 int
 gn_close (int * const fd);
@@ -33,7 +34,16 @@ gn_open_file (gn_conn_t * const conn)
         if (conn->fd > -1)
         {
             printf ("Opened \"%s\".\n", abs_path);
-            strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n\r\n");
+            struct stat st = { 0 };
+            const int rfstat = fstat (conn->fd, &st);
+            if (rfstat == 0)
+            {
+                strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n");
+                char tmp[48];
+                sprintf (tmp, "Content-Length: %li\r\n\r\n", st.st_size);
+                strcat (conn->send_buf, tmp);
+            }
+            else strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
         }
         else
         {
@@ -73,7 +83,7 @@ __attribute__((nonnull))
 void
 gn_send_hdrs (gn_conn_t * const conn)
 {
-    printf ("Sending (%u) \"%s\".\n", conn->send_buf_len, conn->send_buf);
+    printf ("Sending headers (%u) \"%s\".\n", conn->send_buf_len, conn->send_buf);
     const ssize_t rsend = send (conn->sock, conn->send_buf, conn->send_buf_len, 0);
     switch (rsend)
     {
