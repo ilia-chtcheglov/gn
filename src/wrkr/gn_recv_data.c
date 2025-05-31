@@ -22,7 +22,8 @@ gn_recv_data (gn_conn_t * const conn)
             {
                 case EINTR:
                 {
-                    // recv() was interrupted by a signal. Do nothing.
+                    // recv() was interrupted by a signal. Update the last_io variable.
+                    conn->last_io = time (NULL);
                     break;
                 }
                 case EAGAIN:
@@ -59,6 +60,8 @@ gn_recv_data (gn_conn_t * const conn)
             conn->recv_buf_len += (uint32_t)rrecv;
             // NULL terminate the receive buffer.
             conn->recv_buf[conn->recv_buf_len] = '\0';
+            // Update the last_io variable.
+            conn->last_io = time (NULL);
             // Go back to the previous connection step.
             conn->step = conn->prev_step;
             printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
