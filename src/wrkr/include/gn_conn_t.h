@@ -14,6 +14,7 @@ struct gn_conn_t
 {
     int            sock;
     int            fd;
+    uint16_t       status;
     gn_conn_step_e step;
     gn_conn_step_e prev_step;
     char *         saddr;

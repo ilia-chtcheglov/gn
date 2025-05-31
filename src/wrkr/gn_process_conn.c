@@ -39,11 +39,16 @@ gn_open_file (gn_conn_t * const conn)
             if (rfstat == 0)
             {
                 strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n");
+                conn->status = 200;
                 char tmp[48];
                 sprintf (tmp, "Content-Length: %li\r\n\r\n", st.st_size);
                 strcat (conn->send_buf, tmp);
             }
-            else strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            else
+            {
+                strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                conn->status = 500;
+            }
         }
         else
         {
@@ -53,11 +58,13 @@ gn_open_file (gn_conn_t * const conn)
                 case ENOENT:
                 {
                     strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
+                    conn->status = 404;
                     break;
                 }
                 default:
                 {
                     strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                    conn->status = 500;
                 }
             }
         }
@@ -69,6 +76,7 @@ gn_open_file (gn_conn_t * const conn)
     {
         fprintf (stderr, "Failed to allocate buffer for absolute file path.\n");
         strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        conn->status = 500;
     }
 
     conn->send_buf_len = (uint32_t)strlen (conn->send_buf);
@@ -127,6 +135,25 @@ gn_send_hdrs (gn_conn_t * const conn)
             conn->send_buf_len -= (uint32_t)rsend;
             conn->send_buf[conn->send_buf_len] = '\0';
             printf ("Remaining (%u) \"%s\"\n", conn->send_buf_len, conn->send_buf); // TODO: Remove.
+
+            if (conn->send_buf_len == 0)
+            {
+                printf ("Response headers sent.\n");
+                switch (conn->status)
+                {
+                    case 200:
+                    {
+                        printf ("Sending file.\n");
+                        conn->step = GN_CONN_STEP_SEND_FILE;
+                        break;
+                    }
+                    default:
+                    {
+                        printf ("Closing connection.\n");
+                        conn->step = GN_CONN_STEP_CLOSE;
+                    }
+                }
+            }
         }
     }
 }
@@ -171,6 +198,10 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_SEND_HDRS:
         {
             gn_send_hdrs (conn);
+            break;
+        }
+        case GN_CONN_STEP_SEND_FILE:
+        {
             break;
         }
         case GN_CONN_STEP_RECV_DATA:
