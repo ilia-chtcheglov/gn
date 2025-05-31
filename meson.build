@@ -13,7 +13,10 @@ comn_files = files(
     'src/comn/gn_close_serv_socks.c',
     'src/comn/gn_close.c',
     'src/comn/gn_htbl_free.c',
+    'src/comn/gn_htbl_hash.c',
     'src/comn/gn_htbl_init.c',
+    'src/comn/gn_htbl_insr.c',
+    'src/comn/gn_htbl_item_init.c',
     'src/comn/gn_ipc_close.c',
     'src/comn/gn_ipc_open.c',
     'src/comn/gn_prse_cmdl_args.c',
@@ -90,6 +93,7 @@ executable('gn', all_files,
     include_directories: inc_dirs,
     c_args: c_flags,
     link_args: [
+        '-lm'
     ],
     dependencies: [
         dep_json_c

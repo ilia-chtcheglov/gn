@@ -39,6 +39,13 @@ gn_extr_hdrv (gn_conn_t * const conn)
         }
         printf ("Header value (%u) \"%s\".\n", conn->hdrv_len, conn->hdrv);
 
+        if (gn_htbl_insr (&conn->req_hdrs, conn->hdrn, conn->hdrn_len, conn->hdrv, conn->hdrv_len))
+        {
+            fprintf (stderr, "Failed to add request header to hash table.\n");
+            conn->step = GN_CONN_STEP_CLOSE;
+            return;
+        }
+
         conn->hdrn_len = 0;
         conn->hdrv_len = 0;
 
