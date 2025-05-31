@@ -13,6 +13,7 @@ gn_free_conn (gn_conn_t ** const conn)
     free ((*conn)->mthd);
     free ((*conn)->recv_buf);
     free ((*conn)->saddr);
+    gn_htbl_free (&(*conn)->req_hdrs);
 
     free (*conn);
     *conn = NULL;

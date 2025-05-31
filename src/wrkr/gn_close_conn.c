@@ -18,4 +18,5 @@ gn_close_conn (gn_conn_t * const conn)
     conn->recv_buf = NULL;
     free (conn->saddr);
     conn->saddr = NULL;
+    gn_htbl_free (&conn->req_hdrs);
 }
