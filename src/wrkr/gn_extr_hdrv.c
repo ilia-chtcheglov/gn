@@ -37,6 +37,37 @@ gn_extr_hdrv (gn_conn_t * const conn)
             conn->hdrv[conn->hdrv_len - 1] = '\0';
             conn->hdrv_len--;
         }
+
+        // Remove white spaces before the header value.
+        bool loop = true;
+        for (i = 0; i < conn->hdrv_len && loop; )
+        {
+            switch (conn->hdrv[i])
+            {
+                case ' ':
+                case '\t':
+                {
+                    i++;
+                    break;
+                }
+                default:
+                    loop = false;
+            }
+        }
+
+        uint32_t s = (uint32_t)i;
+        // Move the data to the beginning of the header value buffer.
+        i = 0;
+        j = s;
+        while (j < conn->hdrv_len)
+        {
+            conn->hdrv[i] = conn->hdrv[j];
+            i++;
+            j++;
+        }
+        conn->hdrv_len -= s;
+        conn->hdrv[conn->hdrv_len] = '\0';
+
         printf ("Header value (%u) \"%s\".\n", conn->hdrv_len, conn->hdrv);
 
         if (gn_htbl_insr (&conn->req_hdrs, conn->hdrn, conn->hdrn_len, conn->hdrv, conn->hdrv_len))
