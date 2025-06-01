@@ -64,8 +64,8 @@ gn_open_file (gn_conn_t * const conn)
                     conn->fd = open (abs_path, O_RDONLY | O_NONBLOCK);
                     if (conn->fd > -1)
                     {
-                        printf ("Opened \"%s\".\n", abs_path);
-                        strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n");
+                        printf ("Opened \"%s\".\n", abs_path); // TODO: Remove.
+
                         conn->status = 200;
                         char tmp[48];
                         sprintf (tmp, "Content-Length: %li\r\n\r\n", st.st_size);
@@ -79,15 +79,11 @@ gn_open_file (gn_conn_t * const conn)
                             // TODO: Check other error codes.
                             case ENOENT:
                             {
-                                strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
                                 conn->status = 404;
                                 break;
                             }
                             default:
-                            {
-                                strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                                 conn->status = 500;
-                            }
                         }
                     }
                 }
@@ -100,21 +96,16 @@ gn_open_file (gn_conn_t * const conn)
                         {
                             case EACCES:
                             {
-                                strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
                                 conn->status = 403;
                                 break;
                             }
                             case ENOENT:
                             {
-                                strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
                                 conn->status = 404;
                                 break;
                             }
                             default:
-                            {
-                                strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                                 conn->status = 500;
-                            }
                         }
                         break;
                     }
@@ -152,7 +143,6 @@ gn_open_file (gn_conn_t * const conn)
                             {
                                 fprintf (stderr, "Directory handle corrupted.\n");
                                 ropendir = NULL;
-                                strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                                 conn->status = 500;
                                 // TODO: Stop worker process.
                             }
@@ -172,37 +162,25 @@ gn_open_file (gn_conn_t * const conn)
                                     closedir (ropendir);
                                     ropendir = NULL;
 
+                                    // The same function will be called with this step.
                                     conn->step = GN_CONN_STEP_OPEN_LIST;
                                     return;
                                 }
-                                else
-                                {
-                                    strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
-                                    conn->status = 500;
-                                }
+                                else conn->status = 500;
                             }
                         }
-                        else
-                        {
-                            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
-                            conn->status = 500;
-                        }
+                        else conn->status = 500;
                     }
                     else
                     {
                         // TODO: Check errno including open() errno values.
-                        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                         conn->status = 500;
                     }
 
                     closedir (ropendir);
                     ropendir = NULL;
                 }
-                else
-                {
-                    strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
-                    conn->status = 403;
-                }
+                else conn->status = 403;
                 break;
             }
             case -1:
@@ -211,14 +189,12 @@ gn_open_file (gn_conn_t * const conn)
                 {
                     case EACCES:
                     {
-                        strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
                         conn->status = 403;
                         break;
                     }
                     case ENOENT:
                     case ENOTDIR:
                     {
-                        strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
                         conn->status = 404;
                         break;
                     }
@@ -227,21 +203,18 @@ gn_open_file (gn_conn_t * const conn)
                     case ENOMEM:
                     case EOVERFLOW:
                     {
-                        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                         conn->status = 500;
                         break;
                     }
                     case EBADF:
                     case EFAULT:
                     {
-                        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                         conn->status = 500;
                         // TODO: Stop worker process.
                         break;
                     }
                     default:
                     {
-                        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
                         conn->status = 500;
                         // TODO: Stop worker process.
                     }
@@ -250,7 +223,7 @@ gn_open_file (gn_conn_t * const conn)
             }
             default:
             {
-                strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                
                 conn->status = 500;
                 // TODO: Stop worker process.
             }
@@ -258,6 +231,36 @@ gn_open_file (gn_conn_t * const conn)
 
         free (abs_path);
         abs_path = NULL;
+    }
+
+    switch (conn->status)
+    {
+        case 200:
+        {
+            strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n\r\n");
+            break;
+        }
+        case 403:
+        {
+            strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
+            break;
+        }
+        case 404:
+        {
+            strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
+            break;
+        }
+        case 500:
+        {
+            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            break;
+        }
+        default:
+        {
+            fprintf (stderr, "Unexpected response code %i.\n", conn->status);
+            conn->status = 500;
+            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        }
     }
 
     conn->send_buf_len = (uint32_t)strlen (conn->send_buf);
