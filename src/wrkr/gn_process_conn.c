@@ -1,5 +1,6 @@
 #include <gn_process_conn.h>
 
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -24,50 +25,137 @@ gn_open_file (gn_conn_t * const conn)
     const char * const document_root = "/srv/www/testa.local";
     const uint32_t document_root_len = strlen (document_root);
 
-    char * abs_path = (char *)malloc (document_root_len + conn->uri_len + 1);
+    const size_t abs_path_sz = document_root_len + conn->uri_len + 1;
+    char * abs_path = (char *)malloc (abs_path_sz);
     if (abs_path != NULL)
     {
-        strcpy (abs_path, document_root);
+        memset (abs_path, '\0', abs_path_sz);
+        if (conn->step == GN_CONN_STEP_OPEN_FILE) strcpy (abs_path, document_root);
         strcat (abs_path, conn->uri);
         printf ("Absolute path: \"%s\".\n", abs_path);
 
-        conn->fd = open (abs_path, O_RDONLY | O_NONBLOCK);
-        if (conn->fd > -1)
+        struct stat st = { 0 };
+        const int rstat = stat (abs_path, &st);
+        if (rstat == 0)
         {
-            printf ("Opened \"%s\".\n", abs_path);
-            struct stat st = { 0 };
-            const int rfstat = fstat (conn->fd, &st);
-            if (rfstat == 0)
+            if (S_ISREG (st.st_mode) || S_ISLNK (st.st_mode))
             {
-                strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n");
-                conn->status = 200;
-                char tmp[48];
-                sprintf (tmp, "Content-Length: %li\r\n\r\n", st.st_size);
-                strcat (conn->send_buf, tmp);
+                // TODO: Check if following symlinks is allowed by server configuration.
+                conn->fd = open (abs_path, O_RDONLY | O_NONBLOCK);
+                if (conn->fd > -1)
+                {
+                    printf ("Opened \"%s\".\n", abs_path);
+                    strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n");
+                    conn->status = 200;
+                    char tmp[48];
+                    sprintf (tmp, "Content-Length: %li\r\n\r\n", st.st_size);
+                    strcat (conn->send_buf, tmp);
+                }
+                else
+                {
+                    fprintf (stderr, "Failed to open \"%s\". %s.\n", abs_path, strerror (errno));
+                    switch (errno)
+                    {
+                        // TODO: Check other error codes.
+                        case ENOENT:
+                        {
+                            strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
+                            conn->status = 404;
+                            break;
+                        }
+                        default:
+                        {
+                            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                            conn->status = 500;
+                        }
+                    }
+                }
+            }
+            else if (S_ISDIR (st.st_mode))
+            {
+                DIR * ropendir = opendir (abs_path);
+                if (ropendir != NULL)
+                {
+                    printf ("Opened directory \"%s\".\n", abs_path);
+                    char tmppath[32];
+                    strcpy (tmppath, "/tmp/gndirlstXXXXXX");
+                    const int rmkostemp = mkostemp (tmppath, O_RDWR | O_CLOEXEC | O_NONBLOCK);
+                    if (rmkostemp > -1)
+                    {
+                        const char * const bg =
+                        "<html>\n"
+                        "\t<head>\n"
+                        "\t\t<title>Listing</title>\n"
+                        "\t</head>\n"
+                        "\t<body>\n"
+                        "\t\t<ul>\n";
+                        (void)! write (rmkostemp, bg, strlen (bg));
+
+                        struct dirent * ent = NULL;
+                        while ((ent = readdir (ropendir)) != NULL)
+                        {
+                            char tmp[1024];
+                            sprintf (tmp, "<li><a href=\"%s\">%s</a></li>", ent->d_name, ent->d_name);
+                            (void)! write (rmkostemp, tmp, strlen (tmp));
+                        }
+
+                        const char * const en =
+                        "\t\t</ul>\n"
+                        "\t</body>\n"
+                        "</html>";
+                        (void)! write (rmkostemp, en, strlen (en));
+
+                        strcpy (conn->uri, tmppath);
+                        conn->uri_len = (uint32_t)strlen (tmppath);
+                        printf ("New URI (%u) \"%s\".\n", conn->uri_len, conn->uri);
+
+                        conn->step = GN_CONN_STEP_OPEN_LIST;
+                        return;
+                    }
+                    else
+                    {
+                        // TODO: Check errno including open() errno values.
+                        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                        conn->status = 500;
+                    }
+                    closedir (ropendir);
+                    ropendir = NULL;
+                }
+                else
+                {
+                    switch (errno)
+                    {
+                        case EACCES:
+                        {
+                            strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
+                            conn->status = 403;
+                            break;
+                        }
+                        case ENOENT:
+                        {
+                            strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
+                            conn->status = 404;
+                            break;
+                        }
+                        default:
+                        {
+                            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+                            conn->status = 500;
+                        }
+                    }
+                }
             }
             else
             {
-                strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
-                conn->status = 500;
+                strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
+                conn->status = 403;
             }
         }
         else
         {
-            fprintf (stderr, "Failed to open \"%s\". %s.\n", abs_path, strerror (errno));
-            switch (errno)
-            {
-                case ENOENT:
-                {
-                    strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
-                    conn->status = 404;
-                    break;
-                }
-                default:
-                {
-                    strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
-                    conn->status = 500;
-                }
-            }
+            // TODO: Don't return 500 if file doesn't exist.
+            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            conn->status = 500;
         }
 
         free (abs_path);
@@ -292,6 +380,7 @@ gn_process_conn (gn_conn_t * const conn)
             break;
         }
         case GN_CONN_STEP_OPEN_FILE:
+        case GN_CONN_STEP_OPEN_LIST:
         {
             gn_open_file (conn);
             break;
