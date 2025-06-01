@@ -134,9 +134,17 @@ gn_open_file (gn_conn_t * const conn)
                             struct dirent * ent = NULL;
                             while ((ent = readdir (ropendir)) != NULL)
                             {
-                                char tmp[1024];
-                                sprintf (tmp, "<li><a href=\"%s\">%s</a></li>\n", ent->d_name, ent->d_name);
-                                (void)! write (rmkostemp, tmp, strlen (tmp));
+                                char tmp1[1024];
+                                sprintf (tmp1, "<li><a href=\"%s", conn->uri);
+                                if (conn->uri[conn->uri_len - 1] != '/') strcat (tmp1, "/");
+
+                                char tmp2[1024];
+                                sprintf (tmp2, "%s\">%s</a></li>\n", ent->d_name, ent->d_name);
+
+                                char tmp3[2048];
+                                strcpy (tmp3, tmp1);
+                                strcat (tmp3, tmp2);
+                                (void)! write (rmkostemp, tmp3, strlen (tmp3));
                             }
 
                             if (errno != 0)
