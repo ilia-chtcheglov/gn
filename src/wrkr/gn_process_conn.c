@@ -135,7 +135,7 @@ gn_open_file (gn_conn_t * const conn)
                             while ((ent = readdir (ropendir)) != NULL)
                             {
                                 char tmp1[1024];
-                                sprintf (tmp1, "<li><a href=\"%s", conn->uri);
+                                sprintf (tmp1, "\t\t\t<li><a href=\"%s", conn->uri);
                                 if (conn->uri[conn->uri_len - 1] != '/') strcat (tmp1, "/");
 
                                 char tmp2[1024];
