@@ -26,6 +26,7 @@ gn_mstr_init (int ipc_sock,
 {
     if (gn_set_sig_hndlr (SIGINT, gn_sigint_handler) != EXIT_SUCCESS) return EXIT_FAILURE;
 
+    /*
     int lock_fd = open ("/run/gn.lock", O_RDONLY | O_CLOEXEC | O_CREAT, S_IRUSR | S_IRGRP);
     if (lock_fd < 0)
     {
@@ -67,6 +68,7 @@ gn_mstr_init (int ipc_sock,
             }
         }
     }
+    */
 
     bool this_ret = EXIT_SUCCESS;
 
