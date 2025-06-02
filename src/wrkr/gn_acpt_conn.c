@@ -102,8 +102,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     }
 
     #define GN_MTHD_SZ 16
-    conn->mthd = (char *)malloc (GN_MTHD_SZ);
-    if (conn->mthd == NULL)
+    if (gn_str_init (&conn->mthd, GN_MTHD_SZ) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate request method buffer.\n");
         goto labl_free_send_buf;
@@ -146,9 +145,6 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     conn->send_buf_len = 0;
     conn->send_buf_sz = GN_SEND_BUF_SZ;
-
-    conn->mthd_len = 0;
-    conn->mthd_sz = GN_MTHD_SZ;
 
     conn->uri_len = 0;
     conn->uri_sz = GN_URI_SZ;
@@ -203,7 +199,7 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     free (conn->uri);
 
     labl_free_mthd:
-    free (conn->mthd);
+    gn_str_deinit (&conn->mthd);
 
     labl_free_send_buf:
     free (conn->send_buf);

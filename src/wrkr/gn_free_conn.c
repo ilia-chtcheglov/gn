@@ -11,7 +11,7 @@ gn_free_conn (gn_conn_t ** const conn)
     free ((*conn)->hdrn);
     free ((*conn)->prot);
     free ((*conn)->uri);
-    free ((*conn)->mthd);
+    gn_str_deinit (&(*conn)->mthd);
     free ((*conn)->send_buf);
     free ((*conn)->recv_buf);
     free ((*conn)->saddr);

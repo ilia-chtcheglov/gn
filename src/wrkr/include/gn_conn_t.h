@@ -2,6 +2,7 @@
 #define GN_CONN_T_H
 
 #include <gn_htbl_t.h>
+#include <gn_str_t.h>
 
 #include <gn_conn_step_e.h>
 
@@ -26,9 +27,7 @@ struct gn_conn_t
     char *         send_buf;
     uint32_t       send_buf_len;
     uint32_t       send_buf_sz;
-    char *         mthd;
-    uint32_t       mthd_len;
-    uint32_t       mthd_sz;
+    gn_str_t       mthd;
     char *         uri;
     uint32_t       uri_len;
     uint32_t       uri_sz;

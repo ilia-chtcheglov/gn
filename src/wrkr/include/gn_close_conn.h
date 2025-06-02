@@ -15,4 +15,7 @@ __attribute__((nonnull))
 void
 gn_htbl_free (gn_htbl_t * const tbl);
 
+void
+gn_str_deinit (gn_str_t * const str);
+
 #endif // GN_CLOSE_CONN_H
