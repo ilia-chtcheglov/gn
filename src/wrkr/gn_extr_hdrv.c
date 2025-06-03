@@ -7,42 +7,42 @@ gn_extr_hdrv (gn_conn_t * const conn)
 {
     size_t recv_buf_i = 0;
     for ( ;
-         recv_buf_i < conn->recv_buf_len &&
-         conn->hdrv_len < conn->hdrv_sz - 1 &&
-         conn->recv_buf[recv_buf_i] != '\n';
-         recv_buf_i++, conn->hdrv_len++)
+         recv_buf_i < conn->recv_buf.len &&
+         conn->hdrv.len < conn->hdrv.sz - 1 &&
+         conn->recv_buf.dat[recv_buf_i] != '\n';
+         recv_buf_i++, conn->hdrv.len++)
     {
-        conn->hdrv[conn->hdrv_len] = conn->recv_buf[recv_buf_i];
+        conn->hdrv.dat[conn->hdrv.len] = conn->recv_buf.dat[recv_buf_i];
     }
 
-    conn->hdrv[conn->hdrv_len] = '\0';
-    if (conn->recv_buf[recv_buf_i] == '\n')
+    conn->hdrv.dat[conn->hdrv.len] = '\0';
+    if (conn->recv_buf.dat[recv_buf_i] == '\n')
     {
         // Move the rest of the data to the beginning of the receive buffer.
         size_t i = 0;
-        size_t j = (size_t)conn->hdrv_len + 1;
-        while (j < conn->recv_buf_len)
+        size_t j = (size_t)conn->hdrv.len + 1;
+        while (j < conn->recv_buf.len)
         {
-            conn->recv_buf[i] = conn->recv_buf[j];
+            conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
             i++;
             j++;
         }
-        conn->recv_buf_len -= (uint32_t)conn->hdrv_len + 1;
-        conn->recv_buf[conn->recv_buf_len] = '\0';
-        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
+        conn->recv_buf.len -= conn->hdrv.len + 1;
+        conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
         // Must end with CRLF.
-        if (conn->hdrv_len > 0 && conn->hdrv[conn->hdrv_len - 1] == '\r')
+        if (conn->hdrv.len > 0 && conn->hdrv.dat[conn->hdrv.len - 1] == '\r')
         {
-            conn->hdrv[conn->hdrv_len - 1] = '\0';
-            conn->hdrv_len--;
+            conn->hdrv.dat[conn->hdrv.len - 1] = '\0';
+            conn->hdrv.len--;
         }
 
         // Remove white spaces before the header value.
         bool loop = true;
-        for (i = 0; i < conn->hdrv_len && loop; )
+        for (i = 0; i < conn->hdrv.len && loop; )
         {
-            switch (conn->hdrv[i])
+            switch (conn->hdrv.dat[i])
             {
                 case ' ':
                 case '\t':
@@ -59,33 +59,33 @@ gn_extr_hdrv (gn_conn_t * const conn)
         // Move the data to the beginning of the header value buffer.
         i = 0;
         j = s;
-        while (j < conn->hdrv_len)
+        while (j < conn->hdrv.len)
         {
-            conn->hdrv[i] = conn->hdrv[j];
+            conn->hdrv.dat[i] = conn->hdrv.dat[j];
             i++;
             j++;
         }
-        conn->hdrv_len -= s;
-        conn->hdrv[conn->hdrv_len] = '\0';
+        conn->hdrv.len -= s;
+        conn->hdrv.dat[conn->hdrv.len] = '\0';
 
-        printf ("Header value (%u) \"%s\".\n", conn->hdrv_len, conn->hdrv);
+        printf ("Header value (%u) \"%s\".\n", conn->hdrv.len, conn->hdrv.dat);
 
-        if (gn_htbl_insr (&conn->req_hdrs, conn->hdrn, conn->hdrn_len, conn->hdrv, conn->hdrv_len))
+        if (gn_htbl_insr (&conn->req_hdrs, conn->hdrn.dat, conn->hdrn.len, conn->hdrv.dat, conn->hdrv.len))
         {
             fprintf (stderr, "Failed to add request header to hash table.\n");
             conn->step = GN_CONN_STEP_CLOSE;
             return;
         }
 
-        conn->hdrn_len = 0;
-        conn->hdrv_len = 0;
+        conn->hdrn.len = 0;
+        conn->hdrv.len = 0;
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         conn->step = GN_CONN_STEP_EXTR_HDRN; // TODO: Go to next step.
     }
     else
     {
-        if (conn->hdrn_len == conn->hdrn_sz - 1)
+        if (conn->hdrn.len == conn->hdrn.sz - 1)
         {
             fprintf (stderr, "Request header value too long.\n");
             conn->step = GN_CONN_STEP_CLOSE;

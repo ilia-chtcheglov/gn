@@ -33,7 +33,6 @@ gn_open_file (gn_conn_t * const conn)
     if (abs_path == NULL)
     {
         fprintf (stderr, "Failed to allocate buffer for absolute file path.\n");
-        strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
         conn->status = 500;
     }
     else
@@ -69,7 +68,7 @@ gn_open_file (gn_conn_t * const conn)
                         conn->status = 200;
                         char tmp[48];
                         sprintf (tmp, "Content-Length: %li\r\n\r\n", st.st_size);
-                        strcat (conn->send_buf, tmp);
+                        strcat (conn->send_buf.dat, tmp);
                     }
                     else
                     {
@@ -245,33 +244,33 @@ gn_open_file (gn_conn_t * const conn)
     {
         case 200:
         {
-            strcpy (conn->send_buf, "HTTP/1.1 200 OK\r\n\r\n");
+            strcpy (conn->send_buf.dat, "HTTP/1.1 200 OK\r\n\r\n");
             break;
         }
         case 403:
         {
-            strcpy (conn->send_buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
+            strcpy (conn->send_buf.dat, "HTTP/1.1 403 Forbidden\r\n\r\n");
             break;
         }
         case 404:
         {
-            strcpy (conn->send_buf, "HTTP/1.1 404 Not Found\r\n\r\n");
+            strcpy (conn->send_buf.dat, "HTTP/1.1 404 Not Found\r\n\r\n");
             break;
         }
         case 500:
         {
-            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            strcpy (conn->send_buf.dat, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
             break;
         }
         default:
         {
             fprintf (stderr, "Unexpected response code %i.\n", conn->status);
             conn->status = 500;
-            strcpy (conn->send_buf, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            strcpy (conn->send_buf.dat, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
         }
     }
 
-    conn->send_buf_len = (uint32_t)strlen (conn->send_buf);
+    conn->send_buf.len = (uint32_t)strlen (conn->send_buf.dat);
     conn->step = GN_CONN_STEP_SEND_HDRS;
 
     printf ("\"%s\" %i.\n", conn->uri.dat, conn->status); // TODO: Remove.
@@ -285,12 +284,12 @@ __attribute__((nonnull))
 void
 gn_send_hdrs (gn_conn_t * const conn)
 {
-    printf ("Sending headers (%p) (%u) \"%s\".\n", conn->send_buf, conn->send_buf_len, conn->send_buf);
+    printf ("Sending headers (%u) \"%s\".\n", conn->send_buf.len, conn->send_buf.dat);
     // Test code.
-    size_t to_send = conn->send_buf_len;
+    size_t to_send = conn->send_buf.len;
     // if (to_send > 10) to_send = 10;
 
-    const ssize_t rsend = send (conn->sock, conn->send_buf, to_send, 0);
+    const ssize_t rsend = send (conn->sock, conn->send_buf.dat, to_send, 0);
     switch (rsend)
     {
         // TODO: Check if the client doesn't want to read what we're sending.
@@ -329,17 +328,17 @@ gn_send_hdrs (gn_conn_t * const conn)
             // Move the rest of the data to the beginning of the send buffer.
             uint32_t i = 0;
             uint32_t j = (uint32_t)rsend;
-            while (j < conn->send_buf_len)
+            while (j < conn->send_buf.len)
             {
-                conn->send_buf[i] = conn->send_buf[j];
+                conn->send_buf.dat[i] = conn->send_buf.dat[j];
                 i++;
                 j++;
             }
-            conn->send_buf_len -= (uint32_t)rsend;
-            conn->send_buf[conn->send_buf_len] = '\0';
-            printf ("Remaining (%u) \"%s\"\n", conn->send_buf_len, conn->send_buf); // TODO: Remove.
+            conn->send_buf.len -= (uint32_t)rsend;
+            conn->send_buf.dat[conn->send_buf.len] = '\0';
+            printf ("Remaining (%u) \"%s\"\n", conn->send_buf.len, conn->send_buf.dat); // TODO: Remove.
 
-            if (conn->send_buf_len == 0)
+            if (conn->send_buf.len == 0)
             {
                 printf ("Response headers sent.\n");
                 switch (conn->status)
@@ -369,8 +368,8 @@ __attribute__((nonnull))
 void
 gn_send_file (gn_conn_t * const conn)
 {
-    const size_t max_read = conn->send_buf_sz - conn->send_buf_len - 1;
-    const ssize_t rread = read (conn->fd, &conn->send_buf[conn->send_buf_len], max_read);
+    const size_t max_read = conn->send_buf.sz - conn->send_buf.len - 1;
+    const ssize_t rread = read (conn->fd, &conn->send_buf.dat[conn->send_buf.len], max_read);
     switch (rread)
     {
         case -1:
@@ -445,8 +444,8 @@ gn_send_file (gn_conn_t * const conn)
         }
         default:
         {
-            conn->send_buf_len += (uint32_t)rread;
-            conn->send_buf[conn->send_buf_len] = '\0';
+            conn->send_buf.len += (uint32_t)rread;
+            conn->send_buf.dat[conn->send_buf.len] = '\0';
             gn_send_hdrs (conn);
         }
     }

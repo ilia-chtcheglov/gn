@@ -12,8 +12,8 @@ gn_recv_data (gn_conn_t * const conn)
      * If buffer size is 10 bytes and length (data inside) is 4, recv() will receive 10 - 4 - 1 = 5.
      * The final buffer length will be 4 + 5 = 9 which is less than 10, with room for the NULL byte.
      */
-    const ssize_t rrecv = recv (conn->sock, &conn->recv_buf[conn->recv_buf_len],
-                                conn->recv_buf_sz - conn->recv_buf_len - 1, 0);
+    const ssize_t rrecv = recv (conn->sock, &conn->recv_buf.dat[conn->recv_buf.len],
+                                conn->recv_buf.sz - conn->recv_buf.len - 1, 0);
     switch (rrecv)
     {
         case -1: // Error occurred.
@@ -57,14 +57,14 @@ gn_recv_data (gn_conn_t * const conn)
         default: // Data received.
         {
             // Update the receive buffer length.
-            conn->recv_buf_len += (uint32_t)rrecv;
+            conn->recv_buf.len += (uint32_t)rrecv;
             // NULL terminate the receive buffer.
-            conn->recv_buf[conn->recv_buf_len] = '\0';
+            conn->recv_buf.dat[conn->recv_buf.len] = '\0';
             // Update the last_io variable.
             conn->last_io = time (NULL);
             // Go back to the previous connection step.
             conn->step = conn->prev_step;
-            printf ("Received (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
+            printf ("Received (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
         }
     }
 }

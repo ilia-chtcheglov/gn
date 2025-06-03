@@ -6,29 +6,29 @@ gn_extr_prot (gn_conn_t * const conn)
 {
     size_t recv_buf_i = 0;
     for ( ;
-         recv_buf_i < conn->recv_buf_len &&
+         recv_buf_i < conn->recv_buf.len &&
          conn->prot.len < conn->prot.sz - 1 &&
-         conn->recv_buf[recv_buf_i] != '\n';
+         conn->recv_buf.dat[recv_buf_i] != '\n';
          recv_buf_i++, conn->prot.len++)
     {
-        conn->prot.dat[conn->prot.len] = conn->recv_buf[recv_buf_i];
+        conn->prot.dat[conn->prot.len] = conn->recv_buf.dat[recv_buf_i];
     }
 
     conn->prot.dat[conn->prot.len] = '\0';
-    if (conn->recv_buf[recv_buf_i] == '\n')
+    if (conn->recv_buf.dat[recv_buf_i] == '\n')
     {
         // Move the rest of the data to the beginning of the receive buffer.
         size_t i = 0;
         size_t j = (size_t)conn->prot.len + 1;
-        while (j < conn->recv_buf_len)
+        while (j < conn->recv_buf.len)
         {
-            conn->recv_buf[i] = conn->recv_buf[j];
+            conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
             i++;
             j++;
         }
-        conn->recv_buf_len -= (uint32_t)conn->prot.len + 1;
-        conn->recv_buf[conn->recv_buf_len] = '\0';
-        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
+        conn->recv_buf.len -= (uint32_t)conn->prot.len + 1;
+        conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
         // Must end with CRLF.
         if (conn->prot.len > 0 && conn->prot.dat[conn->prot.len - 1] == '\r')

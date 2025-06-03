@@ -85,17 +85,15 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_htbl;
     }
 
-    #define GN_RECV_BUF_SZ 1024
-    conn->recv_buf = (char *)malloc (GN_RECV_BUF_SZ);
-    if (conn->recv_buf == NULL)
+    #define GN_RECV_BUF_LEN 1023
+    if (gn_str_init (&conn->recv_buf, GN_RECV_BUF_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate receive buffer.\n");
         goto labl_free_saddr;
     }
 
-    #define GN_SEND_BUF_SZ 65536
-    conn->send_buf = (char *)malloc (GN_SEND_BUF_SZ);
-    if (conn->send_buf == NULL)
+    #define GN_SEND_BUF_LEN 65535
+    if (gn_str_init (&conn->send_buf, GN_SEND_BUF_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate send buffer.\n");
         goto labl_free_recv_buf;
@@ -122,33 +120,19 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_uri;
     }
 
-    #define GN_HDRN_SZ 255
-    conn->hdrn = (char *)malloc (GN_HDRN_SZ);
-    if (conn->hdrn == NULL)
+    #define GN_HDRN_LEN 255
+    if (gn_str_init (&conn->hdrn, GN_HDRN_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate request header name buffer.\n");
         goto labl_free_prot;
     }
 
-    #define GN_HDRV_SZ 4096
-    conn->hdrv = (char *)malloc (GN_HDRV_SZ);
-    if (conn->hdrv == NULL)
+    #define GN_HDRV_LEN 4096
+    if (gn_str_init (&conn->hdrv, GN_HDRV_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate request header value buffer.\n");
         goto labl_free_hdrn;
     }
-
-    conn->recv_buf_len = 0;
-    conn->recv_buf_sz = GN_RECV_BUF_SZ;
-
-    conn->send_buf_len = 0;
-    conn->send_buf_sz = GN_SEND_BUF_SZ;
-
-    conn->hdrn_len = 0;
-    conn->hdrn_sz = GN_HDRN_SZ;
-
-    conn->hdrv_len = 0;
-    conn->hdrv_sz = GN_HDRV_SZ;
 
     conn->sock = raccept4;
     conn->sport = sport;
@@ -179,10 +163,10 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     fprintf (stderr, "Failed to pass connection to connection management thread.\n");
 
-    free (conn->hdrv);
+    gn_str_deinit (&conn->hdrv);
 
     labl_free_hdrn:
-    free (conn->hdrn);
+    gn_str_deinit (&conn->hdrn);
 
     labl_free_prot:
     gn_str_deinit (&conn->prot);
@@ -194,10 +178,10 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     gn_str_deinit (&conn->mthd);
 
     labl_free_send_buf:
-    free (conn->send_buf);
+    gn_str_deinit (&conn->send_buf);
 
     labl_free_recv_buf:
-    free (conn->recv_buf);
+    gn_str_deinit (&conn->recv_buf);
 
     labl_free_saddr:
     // Free source IP buffer.

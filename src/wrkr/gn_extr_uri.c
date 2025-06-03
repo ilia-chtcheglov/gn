@@ -6,30 +6,30 @@ gn_extr_uri (gn_conn_t * const conn)
 {
     size_t recv_buf_i = 0;
     for ( ;
-         recv_buf_i < conn->recv_buf_len &&
+         recv_buf_i < conn->recv_buf.len &&
          conn->uri.len < conn->uri.sz - 1 &&
-         conn->recv_buf[recv_buf_i] != ' ';
+         conn->recv_buf.dat[recv_buf_i] != ' ';
          recv_buf_i++, conn->uri.len++)
     {
-        conn->uri.dat[conn->uri.len] = conn->recv_buf[recv_buf_i];
+        conn->uri.dat[conn->uri.len] = conn->recv_buf.dat[recv_buf_i];
     }
 
     conn->uri.dat[conn->uri.len] = '\0';
-    if (conn->recv_buf[recv_buf_i] == ' ')
+    if (conn->recv_buf.dat[recv_buf_i] == ' ')
     {
         printf ("Request URI (%u) \"%s\".\n", conn->uri.len, conn->uri.dat);
         // Move the rest of the data to the beginning of the receive buffer.
         size_t i = 0;
         size_t j = conn->uri.len + 1;
-        while (j < conn->recv_buf_len)
+        while (j < conn->recv_buf.len)
         {
-            conn->recv_buf[i] = conn->recv_buf[j];
+            conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
             i++;
             j++;
         }
-        conn->recv_buf_len -= conn->uri.len + 1;
-        conn->recv_buf[conn->recv_buf_len] = '\0';
-        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf_len, conn->recv_buf); // TODO: Remove.
+        conn->recv_buf.len -= conn->uri.len + 1;
+        conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         conn->step = GN_CONN_STEP_EXTR_PROT; // TODO: Go to next step.
