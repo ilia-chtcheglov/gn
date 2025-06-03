@@ -29,7 +29,7 @@ gn_extr_uri (gn_conn_t * const conn)
         }
         conn->recv_buf.len -= conn->uri.len + 1;
         conn->recv_buf.dat[conn->recv_buf.len] = '\0';
-        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
+        // printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         conn->step = GN_CONN_STEP_EXTR_PROT; // TODO: Go to next step.
@@ -39,7 +39,8 @@ gn_extr_uri (gn_conn_t * const conn)
         if (conn->uri.len == conn->uri.sz - 1)
         {
             fprintf (stderr, "Request URI too long.\n");
-            conn->step = GN_CONN_STEP_CLOSE;
+            conn->status = 414;
+            conn->step = GN_CONN_STEP_WRIT_HDRS;
         }
         else conn->step = GN_CONN_STEP_RECV_DATA;
     }
