@@ -240,6 +240,20 @@ gn_open_file (gn_conn_t * const conn)
         abs_path = NULL;
     }
 
+    conn->send_buf.len = (uint32_t)strlen (conn->send_buf.dat);
+    conn->step = GN_CONN_STEP_WRIT_HDRS;
+
+    printf ("\"%s\" %i.\n", conn->uri.dat, conn->status); // TODO: Remove.
+}
+
+__attribute__((nonnull))
+void
+gn_writ_hdrs (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_writ_hdrs (gn_conn_t * const conn)
+{
     switch (conn->status)
     {
         case 200:
@@ -257,9 +271,19 @@ gn_open_file (gn_conn_t * const conn)
             strcpy (conn->send_buf.dat, "HTTP/1.1 404 Not Found\r\n\r\n");
             break;
         }
+        case 414:
+        {
+            strcpy (conn->send_buf.dat, "HTTP/1.1 414 URI Too Long\r\n\r\n");
+            break;
+        }
         case 500:
         {
             strcpy (conn->send_buf.dat, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            break;
+        }
+        case 501:
+        {
+            strcpy (conn->send_buf.dat, "HTTP/1.1 501 Not Implemented\r\n\r\n");
             break;
         }
         default:
@@ -270,10 +294,10 @@ gn_open_file (gn_conn_t * const conn)
         }
     }
 
-    conn->send_buf.len = (uint32_t)strlen (conn->send_buf.dat);
-    conn->step = GN_CONN_STEP_SEND_HDRS;
+    conn->send_buf.len = (gn_str_len_t)strlen (conn->send_buf.dat);
 
-    printf ("\"%s\" %i.\n", conn->uri.dat, conn->status); // TODO: Remove.
+    conn->prev_step = GN_CONN_STEP_WRIT_HDRS;
+    conn->step = GN_CONN_STEP_SEND_HDRS;
 }
 
 __attribute__((nonnull))
@@ -285,11 +309,8 @@ void
 gn_send_hdrs (gn_conn_t * const conn)
 {
     printf ("Sending headers (%u) \"%s\".\n", conn->send_buf.len, conn->send_buf.dat);
-    // Test code.
-    size_t to_send = conn->send_buf.len;
-    // if (to_send > 10) to_send = 10;
 
-    const ssize_t rsend = send (conn->sock, conn->send_buf.dat, to_send, 0);
+    const ssize_t rsend = send (conn->sock, conn->send_buf.dat, conn->send_buf.len, 0);
     switch (rsend)
     {
         // TODO: Check if the client doesn't want to read what we're sending.
@@ -487,6 +508,11 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_OPEN_LIST:
         {
             gn_open_file (conn);
+            break;
+        }
+        case GN_CONN_STEP_WRIT_HDRS:
+        {
+            gn_writ_hdrs (conn);
             break;
         }
         case GN_CONN_STEP_SEND_HDRS:
