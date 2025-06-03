@@ -17,6 +17,7 @@ comn_files = files(
     'src/comn/gn_htbl_init.c',
     'src/comn/gn_htbl_insr.c',
     'src/comn/gn_htbl_item_init.c',
+    'src/comn/gn_htbl_srch.c',
     'src/comn/gn_ipc_close.c',
     'src/comn/gn_ipc_open.c',
     'src/comn/gn_prse_cmdl_args.c',
