@@ -1,6 +1,15 @@
 
 #include <gn_extr_hdrv.h>
 
+#include <string.h>
+
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+gn_htbl_item_t *
+gn_htbl_srch (gn_htbl_t * const tbl,
+              const char * const key,
+              gn_str_len_t key_len);
+
 __attribute__((nonnull))
 void
 gn_extr_hdrv (gn_conn_t * const conn)
@@ -69,6 +78,23 @@ gn_extr_hdrv (gn_conn_t * const conn)
         conn->hdrv.dat[conn->hdrv.len] = '\0';
 
         printf ("Header value (%u) \"%s\".\n", conn->hdrv.len, conn->hdrv.dat);
+
+        if (strcmp (conn->hdrn.dat, "host") == 0)
+        {
+            /*
+             * From RFC9112 3.2 Request Target:
+             * A server MUST response with a 400 (Bad Request) status code to
+             * any HTTP/1.1 request message that ... contains more than one
+             * Host header field line...
+             */
+            if (gn_htbl_srch (&conn->req_hdrs, conn->hdrn.dat, conn->hdrn.len) != NULL)
+            {
+                fprintf (stderr, "Duplicate Host header detected.\n");
+                conn->status = 400;
+                conn->step = GN_CONN_STEP_WRIT_HDRS;
+                return;
+            }
+        }
 
         if (gn_htbl_insr (&conn->req_hdrs, conn->hdrn.dat, conn->hdrn.len, conn->hdrv.dat, conn->hdrv.len))
         {
