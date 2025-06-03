@@ -28,12 +28,8 @@ struct gn_conn_t
     uint32_t       send_buf_len;
     uint32_t       send_buf_sz;
     gn_str_t       mthd;
-    char *         uri;
-    uint32_t       uri_len;
-    uint32_t       uri_sz;
-    char *         prot;
-    uint8_t        prot_len;
-    uint8_t        prot_sz;
+    gn_str_t       uri;
+    gn_str_t       prot;
     char *         hdrn;
     uint8_t        hdrn_len;
     uint8_t        hdrn_sz;

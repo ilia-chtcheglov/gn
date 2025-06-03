@@ -9,10 +9,8 @@ gn_close_conn (gn_conn_t * const conn)
     conn->hdrv = NULL;
     free (conn->hdrn);
     conn->hdrn = NULL;
-    free (conn->prot);
-    conn->prot = NULL;
-    free (conn->uri);
-    conn->uri = NULL;
+    gn_str_deinit (&conn->prot);
+    gn_str_deinit (&conn->uri);
     gn_str_deinit (&conn->mthd);
     free (conn->send_buf);
     conn->send_buf = NULL;

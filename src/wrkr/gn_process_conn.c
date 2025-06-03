@@ -28,7 +28,7 @@ gn_open_file (gn_conn_t * const conn)
      * Allocate a buffer to store the absolute path the program has to access.
      * (Document root + URI + NULL byte).
      */
-    const size_t abs_path_sz = document_root_len + conn->uri_len + 1;
+    const size_t abs_path_sz = document_root_len + conn->uri.len + 1;
     char * abs_path = (char *)malloc (abs_path_sz);
     if (abs_path == NULL)
     {
@@ -48,7 +48,7 @@ gn_open_file (gn_conn_t * const conn)
          * the path to a temporary file containing the directory listing.
          */
         if (conn->step == GN_CONN_STEP_OPEN_FILE) strcpy (abs_path, document_root);
-        strcat (abs_path, conn->uri);
+        strcat (abs_path, conn->uri.dat);
         printf ("Absolute path: \"%s\".\n", abs_path);
 
         // Get the path type and (file) size.
@@ -135,8 +135,8 @@ gn_open_file (gn_conn_t * const conn)
                             while ((ent = readdir (ropendir)) != NULL)
                             {
                                 char tmp1[1024];
-                                sprintf (tmp1, "\t\t\t<li><a href=\"%s", conn->uri);
-                                if (conn->uri[conn->uri_len - 1] != '/') strcat (tmp1, "/");
+                                sprintf (tmp1, "\t\t\t<li><a href=\"%s", conn->uri.dat);
+                                if (conn->uri.dat[conn->uri.len - 1] != '/') strcat (tmp1, "/");
 
                                 char tmp2[1024];
                                 sprintf (tmp2, "%s\">%s</a></li>\n", ent->d_name, ent->d_name);
@@ -163,9 +163,9 @@ gn_open_file (gn_conn_t * const conn)
                                 rwrite = write (rmkostemp, en, strlen (en));
                                 if (rwrite == strlen (en))
                                 {
-                                    strcpy (conn->uri, tmppath);
-                                    conn->uri_len = (uint32_t)strlen (tmppath);
-                                    printf ("New URI (%u) \"%s\".\n", conn->uri_len, conn->uri); // TODO: Remove.
+                                    strcpy (conn->uri.dat, tmppath);
+                                    conn->uri.len = (gn_str_len_t)strlen (tmppath);
+                                    printf ("New URI (%u) \"%s\".\n", conn->uri.len, conn->uri.dat); // TODO: Remove.
 
                                     closedir (ropendir);
                                     ropendir = NULL;
@@ -274,7 +274,7 @@ gn_open_file (gn_conn_t * const conn)
     conn->send_buf_len = (uint32_t)strlen (conn->send_buf);
     conn->step = GN_CONN_STEP_SEND_HDRS;
 
-    printf ("\"%s\" %i.\n", conn->uri, conn->status); // TODO: Remove.
+    printf ("\"%s\" %i.\n", conn->uri.dat, conn->status); // TODO: Remove.
 }
 
 __attribute__((nonnull))

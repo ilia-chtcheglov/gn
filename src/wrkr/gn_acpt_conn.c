@@ -101,24 +101,22 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
         goto labl_free_recv_buf;
     }
 
-    #define GN_MTHD_SZ 16
-    if (gn_str_init (&conn->mthd, GN_MTHD_SZ) != GN_STR_ERR_NONE)
+    #define GN_MTHD_LEN 15
+    if (gn_str_init (&conn->mthd, GN_MTHD_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate request method buffer.\n");
         goto labl_free_send_buf;
     }
 
-    #define GN_URI_SZ 65536
-    conn->uri = (char *)malloc (GN_URI_SZ);
-    if (conn->uri == NULL)
+    #define GN_URI_LEN 65535
+    if (gn_str_init (&conn->uri, GN_URI_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate request URI buffer.\n");
         goto labl_free_mthd;
     }
 
-    #define GN_PROT_SZ 16
-    conn->prot = (char *)malloc (GN_PROT_SZ);
-    if (conn->prot == NULL)
+    #define GN_PROT_LEN 15
+    if (gn_str_init (&conn->prot, GN_PROT_LEN) != GN_STR_ERR_NONE)
     {
         fprintf (stderr, "Failed to allocate request protocol buffer.\n");
         goto labl_free_uri;
@@ -145,12 +143,6 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
 
     conn->send_buf_len = 0;
     conn->send_buf_sz = GN_SEND_BUF_SZ;
-
-    conn->uri_len = 0;
-    conn->uri_sz = GN_URI_SZ;
-
-    conn->prot_len = 0;
-    conn->prot_sz = GN_PROT_SZ;
 
     conn->hdrn_len = 0;
     conn->hdrn_sz = GN_HDRN_SZ;
@@ -193,10 +185,10 @@ gn_acpt_conn (const gn_serv_sock_t * const serv_sock, gn_conn_mgmt_thrd_data_lis
     free (conn->hdrn);
 
     labl_free_prot:
-    free (conn->prot);
+    gn_str_deinit (&conn->prot);
 
     labl_free_uri:
-    free (conn->uri);
+    gn_str_deinit (&conn->uri);
 
     labl_free_mthd:
     gn_str_deinit (&conn->mthd);

@@ -9,8 +9,8 @@ gn_free_conn (gn_conn_t ** const conn)
     gn_close (&(*conn)->sock);
     free ((*conn)->hdrv);
     free ((*conn)->hdrn);
-    free ((*conn)->prot);
-    free ((*conn)->uri);
+    gn_str_deinit (&(*conn)->prot);
+    gn_str_deinit (&(*conn)->uri);
     gn_str_deinit (&(*conn)->mthd);
     free ((*conn)->send_buf);
     free ((*conn)->recv_buf);
