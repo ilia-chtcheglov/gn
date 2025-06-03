@@ -261,6 +261,11 @@ gn_writ_hdrs (gn_conn_t * const conn)
             strcpy (conn->send_buf.dat, "HTTP/1.1 200 OK\r\n\r\n");
             break;
         }
+        case 400:
+        {
+            strcpy (conn->send_buf.dat, "HTTP/1.1 400 Bad Request\r\n\r\n");
+            break;
+        }
         case 403:
         {
             strcpy (conn->send_buf.dat, "HTTP/1.1 403 Forbidden\r\n\r\n");
