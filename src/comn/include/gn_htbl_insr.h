@@ -18,11 +18,12 @@ gn_htbl_insr (gn_htbl_t * const tbl,
               const uint32_t val_len);
 
 __attribute__((nonnull))
+__attribute__((pure))
 __attribute__((warn_unused_result))
 gn_htbl_len_t
 gn_htbl_hash (const gn_htbl_len_t size,
               const char * const key,
-              const uint32_t key_len);
+              const gn_str_len_t key_len);
 
 __attribute__((nonnull))
 void

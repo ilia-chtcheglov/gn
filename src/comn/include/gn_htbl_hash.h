@@ -7,6 +7,7 @@
 #include <stddef.h>
 
 __attribute__((nonnull))
+__attribute__((pure))
 __attribute__((warn_unused_result))
 gn_htbl_len_t
 gn_htbl_hash (const gn_htbl_len_t size,
