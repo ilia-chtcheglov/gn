@@ -65,7 +65,7 @@ gn_extr_hdrv (gn_conn_t * const conn)
             }
         }
 
-        uint32_t s = (uint32_t)i;
+        gn_str_len_t s = i;
         // Move the data to the beginning of the header value buffer.
         i = 0;
         j = s;
@@ -96,11 +96,42 @@ gn_extr_hdrv (gn_conn_t * const conn)
                 return;
             }
         }
+        else if (strcmp (conn->hdrn.dat, "content-length") == 0)
+        {
+            /*
+             * From RFC9112 6.2 Content-Length:
+             * A sender MUST NOT send a Content-Length header field in
+             * any message that contains a Transfer-Encoding header field.
+             */
+            if (gn_htbl_srch (&conn->req_hdrs, "transfer-encoding", strlen ("transfer-encoding")) != NULL)
+            {
+                fprintf (stderr, "Content-Length present with Transfer-Encoding.\n");
+                conn->status = 400;
+                conn->step = GN_CONN_STEP_WRIT_HDRS;
+                return;
+            }
+        }
+        else if (strcmp (conn->hdrn.dat, "transfer-encoding") == 0)
+        {
+            /*
+             * From RFC9112 6.2 Content-Length:
+             * A sender MUST NOT send a Content-Length header field in
+             * any message that contains a Transfer-Encoding header field.
+             */
+            if (gn_htbl_srch (&conn->req_hdrs, "content-length", strlen ("content-length")) != NULL)
+            {
+                fprintf (stderr, "Transfer-Encoding present with Content-Length.\n");
+                conn->status = 400;
+                conn->step = GN_CONN_STEP_WRIT_HDRS;
+                return;
+            }
+        }
 
         if (gn_htbl_insr (&conn->req_hdrs, conn->hdrn.dat, conn->hdrn.len, conn->hdrv.dat, conn->hdrv.len))
         {
             fprintf (stderr, "Failed to add request header to hash table.\n");
-            conn->step = GN_CONN_STEP_CLOSE;
+            conn->status = 500;
+            conn->step = GN_CONN_STEP_WRIT_HDRS;
             return;
         }
 
