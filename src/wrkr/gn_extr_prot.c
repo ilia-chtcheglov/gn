@@ -4,7 +4,8 @@ __attribute__((nonnull))
 void
 gn_extr_prot (gn_conn_t * const conn)
 {
-    size_t recv_buf_i = 0;
+    // Extract the request protocol from conn->recv_buf and store it in conn->prot.
+    gn_str_len_t recv_buf_i = 0;
     for ( ;
          recv_buf_i < conn->recv_buf.len &&
          conn->prot.len < conn->prot.sz - 1 &&
@@ -28,7 +29,7 @@ gn_extr_prot (gn_conn_t * const conn)
         }
         conn->recv_buf.len -= (uint32_t)conn->prot.len + 1;
         conn->recv_buf.dat[conn->recv_buf.len] = '\0';
-        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
+        // printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
         // Must end with CRLF.
         if (conn->prot.len > 0 && conn->prot.dat[conn->prot.len - 1] == '\r')

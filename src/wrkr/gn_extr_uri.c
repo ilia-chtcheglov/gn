@@ -4,7 +4,8 @@ __attribute__((nonnull))
 void
 gn_extr_uri (gn_conn_t * const conn)
 {
-    size_t recv_buf_i = 0;
+    // Extract the request URI from conn->recv_buf and store it in conn->uri.
+    gn_str_len_t recv_buf_i = 0;
     for ( ;
          recv_buf_i < conn->recv_buf.len &&
          conn->uri.len < conn->uri.sz - 1 &&

@@ -4,7 +4,8 @@ __attribute__((nonnull))
 void
 gn_extr_mthd (gn_conn_t * const conn)
 {
-    size_t recv_buf_i = 0;
+    // Extract the method from conn->recv_buf and store it in conn->mthd.
+    gn_str_len_t recv_buf_i = 0;
     for ( ;
          recv_buf_i < conn->recv_buf.len &&
          conn->mthd.len < conn->mthd.sz - 1 &&
