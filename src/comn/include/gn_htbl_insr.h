@@ -2,6 +2,7 @@
 #define GN_HTBL_INSR_H
 
 #include <gn_htbl_t.h>
+#include <gn_str_t.h>
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -13,9 +14,9 @@ __attribute__((warn_unused_result))
 bool
 gn_htbl_insr (gn_htbl_t * const tbl,
               const char * const key,
-              uint32_t key_len,
+              gn_str_len_t key_len,
               const char * const val,
-              const uint32_t val_len);
+              const gn_str_len_t val_len);
 
 __attribute__((nonnull))
 __attribute__((pure))

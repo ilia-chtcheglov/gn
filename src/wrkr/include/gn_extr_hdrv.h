@@ -15,8 +15,8 @@ __attribute__((warn_unused_result))
 bool
 gn_htbl_insr (gn_htbl_t * const tbl,
               const char * const key,
-              uint32_t key_len,
+              gn_str_len_t key_len,
               const char * const val,
-              const uint32_t val_len);
+              const gn_str_len_t val_len);
 
 #endif // GN_EXTR_HDRV_H

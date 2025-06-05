@@ -14,7 +14,8 @@ __attribute__((nonnull))
 void
 gn_extr_hdrv (gn_conn_t * const conn)
 {
-    size_t recv_buf_i = 0;
+    // Extract the header value from conn->recv_buf and store it in conn->hdrv.
+    gn_str_len_t recv_buf_i = 0;
     for ( ;
          recv_buf_i < conn->recv_buf.len &&
          conn->hdrv.len < conn->hdrv.sz - 1 &&
@@ -28,8 +29,8 @@ gn_extr_hdrv (gn_conn_t * const conn)
     if (conn->recv_buf.dat[recv_buf_i] == '\n')
     {
         // Move the rest of the data to the beginning of the receive buffer.
-        size_t i = 0;
-        size_t j = (size_t)conn->hdrv.len + 1;
+        gn_str_len_t i = 0;
+        gn_str_len_t j = conn->hdrv.len + 1;
         while (j < conn->recv_buf.len)
         {
             conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
@@ -38,7 +39,7 @@ gn_extr_hdrv (gn_conn_t * const conn)
         }
         conn->recv_buf.len -= conn->hdrv.len + 1;
         conn->recv_buf.dat[conn->recv_buf.len] = '\0';
-        printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
+        // printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
         // Must end with CRLF.
         if (conn->hdrv.len > 0 && conn->hdrv.dat[conn->hdrv.len - 1] == '\r')

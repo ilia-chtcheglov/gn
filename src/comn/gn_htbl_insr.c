@@ -5,9 +5,9 @@ __attribute__((warn_unused_result))
 bool
 gn_htbl_insr (gn_htbl_t * const tbl,
               const char * const key,
-              uint32_t key_len,
+              gn_str_len_t key_len,
               const char * const val,
-              const uint32_t val_len)
+              const gn_str_len_t val_len)
 {
     // Return error if the hash table is full.
     if (tbl->len >= tbl->sz)
@@ -18,8 +18,8 @@ gn_htbl_insr (gn_htbl_t * const tbl,
     // If the given key length is 0, calculate the length with strlen().
     if (key_len == 0) key_len = (uint32_t)strlen (key); // TODO: Check length before cast.
 
-    const size_t index = gn_htbl_hash (tbl->sz, key, key_len);
-    printf ("Index: %lu, Key: \"%s\"\n", index, key);
+    const gn_htbl_len_t index = gn_htbl_hash (tbl->sz, key, key_len);
+    printf ("Index: %u, Key: \"%s\"\n", index, key);
 
     if (tbl->itms[index] == NULL)
     {
