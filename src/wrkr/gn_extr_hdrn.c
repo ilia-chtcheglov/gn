@@ -2,47 +2,6 @@
 
 __attribute__((nonnull))
 void
-gn_htbl_dump (gn_htbl_t * const tbl);
-
-__attribute__((nonnull))
-void
-gn_htbl_dump (gn_htbl_t * const tbl)
-{
-    for (size_t i = 0; i < tbl->sz; i++)
-    {
-        printf ("Index %lu, ", i);
-        if (tbl->itms[i] == NULL)
-        {
-            printf ("NULL\n");
-        }
-        else
-        {
-            printf (".key (%u) \"%s\", .val (%u) \"%s\"\n",
-                    tbl->itms[i]->key_len, tbl->itms[i]->key,
-                    tbl->itms[i]->val_len, tbl->itms[i]->val);
-            gn_htbl_item_t * next_item = tbl->itms[i]->next;
-            for ( ; next_item != NULL; next_item = next_item->next)
-            {
-                printf ("\t.key (%u) \"%s\", .val (%u) \"%s\"\n",
-                        next_item->key_len, next_item->key,
-                        next_item->val_len, next_item->val);
-            }
-        }
-    }
-    printf ("\n");
-}
-
-#include <ctype.h>
-
-__attribute__((nonnull))
-__attribute__((warn_unused_result))
-gn_htbl_item_t *
-gn_htbl_srch (gn_htbl_t * const tbl,
-              const char * const key,
-              gn_str_len_t key_len);
-
-__attribute__((nonnull))
-void
 gn_extr_hdrn (gn_conn_t * const conn)
 {
     size_t recv_buf_i = 0;

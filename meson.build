@@ -12,6 +12,7 @@ comn_files = files(
     'src/comn/gn_chck_cmdl_args.c',
     'src/comn/gn_close_serv_socks.c',
     'src/comn/gn_close.c',
+    'src/comn/gn_htbl_dump.c',
     'src/comn/gn_htbl_free.c',
     'src/comn/gn_htbl_hash.c',
     'src/comn/gn_htbl_init.c',
