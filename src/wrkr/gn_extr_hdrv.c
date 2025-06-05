@@ -1,15 +1,6 @@
 
 #include <gn_extr_hdrv.h>
 
-#include <string.h>
-
-__attribute__((nonnull))
-__attribute__((warn_unused_result))
-gn_htbl_item_t *
-gn_htbl_srch (gn_htbl_t * const tbl,
-              const char * const key,
-              gn_str_len_t key_len);
-
 __attribute__((nonnull))
 void
 gn_extr_hdrv (gn_conn_t * const conn)
@@ -139,7 +130,7 @@ gn_extr_hdrv (gn_conn_t * const conn)
         conn->hdrv.len = 0;
 
         conn->prev_step = GN_CONN_STEP_INVALID;
-        conn->step = GN_CONN_STEP_EXTR_HDRN; // TODO: Go to next step.
+        conn->step = GN_CONN_STEP_EXTR_HDRN;
     }
     else
     {

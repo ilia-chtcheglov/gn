@@ -1,7 +1,5 @@
 #include <gn_extr_mthd.h>
 
-#include <string.h>
-
 __attribute__((nonnull))
 void
 gn_extr_mthd (gn_conn_t * const conn)

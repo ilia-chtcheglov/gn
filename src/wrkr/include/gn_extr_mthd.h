@@ -4,6 +4,7 @@
 #include <gn_conn_t.h>
 
 #include <stdio.h>
+#include <string.h>
 
 __attribute__((nonnull))
 void
