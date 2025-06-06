@@ -73,6 +73,7 @@ wrkr_files = files(
     'src/wrkr/gn_free_conn.c',
     'src/wrkr/gn_get_new_conns.c',
     'src/wrkr/gn_ipc_conn.c',
+    'src/wrkr/gn_open_file.c',
     'src/wrkr/gn_process_conn.c',
     'src/wrkr/gn_recv_data.c',
     'src/wrkr/gn_recv_serv_sock.c',
