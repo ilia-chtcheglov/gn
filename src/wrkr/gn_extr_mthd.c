@@ -4,7 +4,7 @@ __attribute__((nonnull))
 void
 gn_extr_mthd (gn_conn_t * const conn)
 {
-    // Extract the method from conn->recv_buf and store it in conn->mthd.
+    // Extract the request method from conn->recv_buf and store it in conn->mthd.
     gn_str_len_t recv_buf_i = 0;
     for ( ;
          recv_buf_i < conn->recv_buf.len &&
@@ -20,8 +20,8 @@ gn_extr_mthd (gn_conn_t * const conn)
     {
         printf ("Request method (%u) \"%s\".\n", conn->mthd.len, conn->mthd.dat); // TODO: Remove.
         // Move the rest of the data to the beginning of the receive buffer.
-        size_t i = 0;
-        size_t j = conn->mthd.len + 1;
+        gn_str_len_t i = 0;
+        gn_str_len_t j = conn->mthd.len + 1;
         while (j < conn->recv_buf.len)
         {
             conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
