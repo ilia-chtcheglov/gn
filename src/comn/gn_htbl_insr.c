@@ -16,7 +16,7 @@ gn_htbl_insr (gn_htbl_t * const tbl,
         return true;
     }
     // If the given key length is 0, calculate the length with strlen().
-    if (key_len == 0) key_len = (uint32_t)strlen (key); // TODO: Check length before cast.
+    if (key_len == 0) key_len = (gn_str_len_t)strlen (key); // TODO: Check length before cast.
 
     const gn_htbl_len_t index = gn_htbl_hash (tbl->sz, key, key_len);
     printf ("Index: %u, Key: \"%s\"\n", index, key);
