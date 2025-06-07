@@ -15,6 +15,7 @@ typedef enum
     GN_CONN_STEP_SEND_HDRS,
     GN_CONN_STEP_SEND_FILE,
     GN_CONN_STEP_RECV_DATA,
+    GN_CONN_STEP_FCGI_CONN,
     GN_CONN_STEP_CLOSE
 } gn_conn_step_e;
 

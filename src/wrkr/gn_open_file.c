@@ -32,6 +32,7 @@ gn_open_file (gn_conn_t * const conn)
          */
         if (conn->step == GN_CONN_STEP_OPEN_FILE) strcpy (abs_path, document_root);
         strcat (abs_path, conn->uri.dat);
+        const size_t abs_path_len = strlen (abs_path);
         printf ("Absolute path: \"%s\".\n", abs_path);
 
         // Get the path type and (file) size.
@@ -43,6 +44,15 @@ gn_open_file (gn_conn_t * const conn)
             {
                 if (S_ISREG (st.st_mode) || S_ISLNK (st.st_mode))
                 {
+                    if (abs_path_len > 3 &&
+                        abs_path[abs_path_len - 4] == '.' && abs_path[abs_path_len - 3] == 'p' &&
+                        abs_path[abs_path_len - 2] == 'h' && abs_path[abs_path_len - 1] == 'p')
+                    {
+                        printf ("Detected PHP request.\n");
+                        conn->step = GN_CONN_STEP_FCGI_CONN;
+                        return;
+                    }
+
                     // TODO: Check if following symlinks is allowed by server configuration.
                     conn->fd = open (abs_path, O_RDONLY | O_NONBLOCK);
                     if (conn->fd > -1)
