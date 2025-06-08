@@ -1,4 +1,3 @@
-
 #include <gn_extr_hdrv.h>
 
 __attribute__((nonnull))
