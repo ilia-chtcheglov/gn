@@ -37,6 +37,13 @@ gn_extr_mthd (gn_conn_t * const conn)
             strcmp (conn->mthd.dat, "POST") == 0 ||
             strcmp (conn->mthd.dat, "HEAD") == 0)
         {
+            if (gn_htbl_insr (&conn->req_hdrs, "REQUEST_METHOD", 0, conn->mthd.dat, conn->mthd.len))
+        {
+            fprintf (stderr, "Failed to add request method to hash table.\n");
+            conn->status = 500;
+            conn->step = GN_CONN_STEP_WRIT_HDRS;
+            return;
+        }
             conn->step = GN_CONN_STEP_EXTR_URI;
             return;
         }
