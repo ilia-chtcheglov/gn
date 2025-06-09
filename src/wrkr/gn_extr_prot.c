@@ -46,6 +46,14 @@ gn_extr_prot (gn_conn_t * const conn)
             return;
         }
 
+        if (gn_htbl_insr (&conn->req_hdrs, "SERVER_PROTOCOL", 0, conn->prot.dat, conn->prot.len))
+        {
+            fprintf (stderr, "Failed to add server protocol to hash table.\n");
+            conn->status = 500;
+            conn->step = GN_CONN_STEP_WRIT_HDRS;
+            return;
+        }
+
         conn->step = GN_CONN_STEP_EXTR_HDRN;
         return;
     }
