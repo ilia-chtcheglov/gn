@@ -12,33 +12,36 @@ gn_extr_hdrv (gn_conn_t * const conn)
 
         conn->hdrv.dat[conn->hdrv.len++] = conn->recv_buf.dat[recv_buf_i++];
     }
-
     conn->hdrv.dat[conn->hdrv.len] = '\0';
+
     if (conn->recv_buf.dat[recv_buf_i] == '\n')
     {
         // Move the rest of the data to the beginning of the receive buffer.
-        gn_str_len_t i = 0;
-        gn_str_len_t j = conn->hdrv.len + 1;
-        while (j < conn->recv_buf.len)
-        {
-            conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
-            i++;
-            j++;
-        }
+        recv_buf_i = 0;
+        gn_str_len_t i = conn->hdrv.len + 1;
+        while (i < conn->recv_buf.len) conn->recv_buf.dat[recv_buf_i++] = conn->recv_buf.dat[i++];
+
         conn->recv_buf.len -= conn->hdrv.len + 1;
         conn->recv_buf.dat[conn->recv_buf.len] = '\0';
-        // printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
 
-        // Must end with CRLF.
+        // Remove CR from the end of the header value buffer.
         if (conn->hdrv.len > 0 && conn->hdrv.dat[conn->hdrv.len - 1] == '\r')
         {
-            conn->hdrv.dat[conn->hdrv.len - 1] = '\0';
             conn->hdrv.len--;
+            conn->hdrv.dat[conn->hdrv.len] = '\0';
         }
 
+        /*
+         * From RFC 9112 5.1 Field Line Parsing:
+         * A field line value might be preceded and/or followed by
+         * optional whitespace (OWS);... OWS occuring before the first non-whitespace
+         * octet of the field line value, or after the last non-whitespace octet of
+         * the field line value, is excluded by parsers when extracting the field line
+         * value from a field line.
+         */
         // Remove white spaces before the header value.
-        bool loop = true;
-        for (i = 0; i < conn->hdrv.len && loop; )
+        i = 0;
+        for (bool loop = true; i < conn->hdrv.len && loop; )
         {
             switch (conn->hdrv.dat[i])
             {
@@ -53,17 +56,12 @@ gn_extr_hdrv (gn_conn_t * const conn)
             }
         }
 
-        gn_str_len_t s = i;
         // Move the data to the beginning of the header value buffer.
-        i = 0;
-        j = s;
-        while (j < conn->hdrv.len)
-        {
-            conn->hdrv.dat[i] = conn->hdrv.dat[j];
-            i++;
-            j++;
-        }
-        conn->hdrv.len -= s;
+        gn_str_len_t s = i;
+        gn_str_len_t d = 0;
+        while (s < conn->hdrv.len) conn->hdrv.dat[d++] = conn->hdrv.dat[s++];
+
+        conn->hdrv.len -= i;
         conn->hdrv.dat[conn->hdrv.len] = '\0';
 
         printf ("Header value (%u) \"%s\".\n", conn->hdrv.len, conn->hdrv.dat);
@@ -128,14 +126,18 @@ gn_extr_hdrv (gn_conn_t * const conn)
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         conn->step = GN_CONN_STEP_EXTR_HDRN;
+        return;
     }
-    else
+
+    if (conn->hdrn.len == conn->hdrn.sz - 1)
     {
-        if (conn->hdrn.len == conn->hdrn.sz - 1)
-        {
-            fprintf (stderr, "Request header value too long.\n");
-            conn->step = GN_CONN_STEP_CLOSE;
-        }
-        else conn->step = GN_CONN_STEP_RECV_DATA;
+         // TODO: Maybe log error.
+        conn->status = 400;
+        conn->prev_step = GN_CONN_STEP_INVALID;
+        conn->step = GN_CONN_STEP_WRIT_HDRS;
+        return;
     }
+
+    conn->prev_step = GN_CONN_STEP_EXTR_HDRV;
+    conn->step = GN_CONN_STEP_RECV_DATA;
 }
