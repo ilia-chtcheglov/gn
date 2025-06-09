@@ -12,7 +12,7 @@ gn_extr_hdrn (gn_conn_t * const conn)
         else if (conn->recv_buf.dat[recv_buf_i] == '\n') break;
 
         /*
-         * From RFC9112 5. Field Syntax:
+         * From RFC 9112 5. Field Syntax:
          * Each field line consists of a case-insensitive field name...
          */
         conn->hdrn.dat[conn->hdrn.len++] = (char)tolower ((unsigned char)conn->recv_buf.dat[recv_buf_i++]);
@@ -72,7 +72,7 @@ gn_extr_hdrn (gn_conn_t * const conn)
             gn_htbl_dump (&conn->req_hdrs); // TODO: Remove.
 
             /*
-             * From RFC9112 3.2 Request Target:
+             * From RFC 9112 3.2 Request Target:
              * A server MUST respond with a 400 (Bad Request) status code to
              * any HTTP/1.1 request message that lacks a Host header field...
              */
