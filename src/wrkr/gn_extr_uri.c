@@ -37,6 +37,11 @@ gn_extr_uri (gn_conn_t * const conn)
         return;
     }
 
+    /*
+     * From RFC 9112 3. Request Line:
+     * A server that receives a request-target longer than any URI it
+     * wishes to parse MUST respond with a 414 (URI Too Long) status code.
+     */
     if (conn->uri.len == conn->uri.sz - 1)
     {
         // TODO: Maybe log error.
