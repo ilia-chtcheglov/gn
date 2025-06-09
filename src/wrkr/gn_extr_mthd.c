@@ -47,10 +47,15 @@ gn_extr_mthd (gn_conn_t * const conn)
         return;
     }
 
+    /*
+     * From RFC 9112 3. Request Line:
+     * A server that receives a method longer than any that it implements
+     * SHOULD respond with a 501 (Not Implemented) status code.
+     */
     if (conn->mthd.len == conn->mthd.sz - 1)
     {
         // TODO: Maybe log error.
-        conn->status = 400; // TODO: Return 400 Bad Request or 501 Not Implemented?
+        conn->status = 501;
         conn->prev_step = GN_CONN_STEP_INVALID;
         conn->step = GN_CONN_STEP_WRIT_HDRS;
         return;
