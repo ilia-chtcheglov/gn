@@ -6,13 +6,11 @@ gn_extr_uri (gn_conn_t * const conn)
 {
     // Extract the request URI from conn->recv_buf and store it in conn->uri.
     gn_str_len_t recv_buf_i = 0;
-    for ( ;
-         recv_buf_i < conn->recv_buf.len &&
-         conn->uri.len < conn->uri.sz - 1 &&
-         conn->recv_buf.dat[recv_buf_i] != ' ';
-         recv_buf_i++, conn->uri.len++)
+    while (recv_buf_i < conn->recv_buf.len && conn->uri.len < conn->uri.sz - 1)
     {
-        conn->uri.dat[conn->uri.len] = conn->recv_buf.dat[recv_buf_i];
+        if (conn->recv_buf.dat[recv_buf_i] == ' ') break;
+
+        conn->uri.dat[conn->uri.len++] = conn->recv_buf.dat[recv_buf_i++];
     }
 
     conn->uri.dat[conn->uri.len] = '\0';

@@ -6,13 +6,11 @@ gn_extr_hdrv (gn_conn_t * const conn)
 {
     // Extract the header value from conn->recv_buf and store it in conn->hdrv.
     gn_str_len_t recv_buf_i = 0;
-    for ( ;
-         recv_buf_i < conn->recv_buf.len &&
-         conn->hdrv.len < conn->hdrv.sz - 1 &&
-         conn->recv_buf.dat[recv_buf_i] != '\n';
-         recv_buf_i++, conn->hdrv.len++)
+    while (recv_buf_i < conn->recv_buf.len && conn->hdrv.len < conn->hdrv.sz - 1)
     {
-        conn->hdrv.dat[conn->hdrv.len] = conn->recv_buf.dat[recv_buf_i];
+        if (conn->recv_buf.dat[recv_buf_i] == '\n') break;
+
+        conn->hdrv.dat[conn->hdrv.len++] = conn->recv_buf.dat[recv_buf_i++];
     }
 
     conn->hdrv.dat[conn->hdrv.len] = '\0';

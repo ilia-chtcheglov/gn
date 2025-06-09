@@ -6,13 +6,11 @@ gn_extr_mthd (gn_conn_t * const conn)
 {
     // Extract the request method from conn->recv_buf and store it in conn->mthd.
     gn_str_len_t recv_buf_i = 0;
-    for ( ;
-         recv_buf_i < conn->recv_buf.len &&
-         conn->mthd.len < conn->mthd.sz - 1 &&
-         conn->recv_buf.dat[recv_buf_i] != ' ';
-         recv_buf_i++, conn->mthd.len++)
+    while (recv_buf_i < conn->recv_buf.len && conn->mthd.len < conn->mthd.sz - 1)
     {
-        conn->mthd.dat[conn->mthd.len] = conn->recv_buf.dat[recv_buf_i];
+        if (conn->recv_buf.dat[recv_buf_i] == ' ') break;
+
+        conn->mthd.dat[conn->mthd.len++] = conn->recv_buf.dat[recv_buf_i++];
     }
 
     conn->mthd.dat[conn->mthd.len] = '\0';

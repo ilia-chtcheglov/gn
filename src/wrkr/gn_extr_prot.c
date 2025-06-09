@@ -6,13 +6,11 @@ gn_extr_prot (gn_conn_t * const conn)
 {
     // Extract the request protocol from conn->recv_buf and store it in conn->prot.
     gn_str_len_t recv_buf_i = 0;
-    for ( ;
-         recv_buf_i < conn->recv_buf.len &&
-         conn->prot.len < conn->prot.sz - 1 &&
-         conn->recv_buf.dat[recv_buf_i] != '\n';
-         recv_buf_i++, conn->prot.len++)
+    while (recv_buf_i < conn->recv_buf.len && conn->prot.len < conn->prot.sz - 1)
     {
-        conn->prot.dat[conn->prot.len] = conn->recv_buf.dat[recv_buf_i];
+        if (conn->recv_buf.dat[recv_buf_i] == '\n') break;
+
+        conn->prot.dat[conn->prot.len++] = conn->recv_buf.dat[recv_buf_i++];
     }
 
     conn->prot.dat[conn->prot.len] = '\0';
