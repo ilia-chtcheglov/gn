@@ -23,37 +23,62 @@ gn_extr_hdrn (gn_conn_t * const conn)
     {
         case ':':
         {
-            printf ("Header name (%u) \"%s\".\n", conn->hdrn.len, conn->hdrn.dat);
             // Move the rest of the data to the beginning of the receive buffer.
-            size_t i = 0;
-            size_t j = (size_t)conn->hdrn.len + 1;
-            while (j < conn->recv_buf.len)
-            {
-                conn->recv_buf.dat[i] = conn->recv_buf.dat[j];
-                i++;
-                j++;
-            }
-            conn->recv_buf.len -= (uint32_t)conn->hdrn.len + 1;
-            conn->recv_buf.dat[conn->recv_buf.len] = '\0';
-            printf ("Remaining (%u) \"%s\"\n", conn->recv_buf.len, conn->recv_buf.dat); // TODO: Remove.
+            recv_buf_i = 0;
+            gn_str_len_t i = conn->hdrn.len + 1;
+            while (i < conn->recv_buf.len) conn->recv_buf.dat[recv_buf_i++] = conn->recv_buf.dat[i++];
 
-            conn->step = GN_CONN_STEP_EXTR_HDRV; // TODO: Go to next step.
+            conn->recv_buf.len -= conn->hdrn.len + 1;
+            conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+
+            conn->prev_step = GN_CONN_STEP_INVALID;
+            if (conn->hdrn.len == 0)
+            {
+                // TODO: Maybe log error.
+                conn->status = 400;
+                conn->step = GN_CONN_STEP_WRIT_HDRS;
+                return;
+            }
+
+            conn->step = GN_CONN_STEP_EXTR_HDRV;
             break;
         }
         case '\n':
         {
-            printf ("End of request headers.\n");
-            conn->recv_buf.dat[0] = '\0';
+            // Move the rest of the data to the beginning of the receive buffer.
+            recv_buf_i = 0;
+            gn_str_len_t i = conn->hdrn.len + 1;
+            while (i < conn->recv_buf.len) conn->recv_buf.dat[recv_buf_i++] = conn->recv_buf.dat[i++];
+
+            conn->recv_buf.len -= conn->hdrn.len + 1;
+            conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+
+            // Remove CR from the end of the header name buffer.
+            if (conn->hdrn.len > 0 && conn->hdrn.dat[conn->hdrn.len - 1] == '\r')
+            {
+                conn->hdrn.len--;
+                conn->hdrn.dat[conn->hdrn.len] = '\0';
+            }
+
+            if (conn->hdrn.len > 0)
+            {
+                // We have a header name but it ends with \n.
+                // TODO: Maybe log error.
+                conn->status = 400;
+                conn->step = GN_CONN_STEP_WRIT_HDRS;
+                return;
+            }
+
             gn_htbl_dump (&conn->req_hdrs); // TODO: Remove.
 
             /*
              * From RFC9112 3.2 Request Target:
-             * A server MUST response with a 400 (Bad Request) status code to
+             * A server MUST respond with a 400 (Bad Request) status code to
              * any HTTP/1.1 request message that lacks a Host header field...
              */
-            if (gn_htbl_srch (&conn->req_hdrs, "host", 4) == NULL)
+            conn->prev_step = GN_CONN_STEP_INVALID;
+            if (gn_htbl_srch (&conn->req_hdrs, "host", 0) == NULL)
             {
-                fprintf (stderr, "Missing Host header.\n");
                 conn->status = 400;
                 conn->step = GN_CONN_STEP_WRIT_HDRS;
                 return;
@@ -66,10 +91,15 @@ gn_extr_hdrn (gn_conn_t * const conn)
         {
             if (conn->hdrn.len == conn->hdrn.sz - 1)
             {
-                fprintf (stderr, "Request header name too long.\n");
-                conn->step = GN_CONN_STEP_CLOSE;
+                // TODO: Maybe log error.
+                conn->status = 400;
+                conn->prev_step = GN_CONN_STEP_INVALID;
+                conn->step = GN_CONN_STEP_WRIT_HDRS;
+                return;
             }
-            else conn->step = GN_CONN_STEP_RECV_DATA;
+
+            conn->prev_step = GN_CONN_STEP_EXTR_HDRN;
+            conn->step = GN_CONN_STEP_RECV_DATA;
         }
     }
 }
