@@ -335,22 +335,26 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_EXTR_MTHD:
         {
             gn_extr_mthd (conn);
-            break;
+            if (conn->step != GN_CONN_STEP_EXTR_URI) break;
+            __attribute__((fallthrough));
         }
         case GN_CONN_STEP_EXTR_URI:
         {
             gn_extr_uri (conn);
-            break;
+            if (conn->step != GN_CONN_STEP_EXTR_PROT) break;
+            __attribute__((fallthrough));
         }
         case GN_CONN_STEP_EXTR_PROT:
         {
             gn_extr_prot (conn);
-            break;
+            if (conn->step != GN_CONN_STEP_EXTR_HDRN) break;
+            __attribute__((fallthrough));
         }
         case GN_CONN_STEP_EXTR_HDRN:
         {
             gn_extr_hdrn (conn);
-            break;
+            if (conn->step != GN_CONN_STEP_EXTR_HDRV) break;
+            __attribute__((fallthrough));
         }
         case GN_CONN_STEP_EXTR_HDRV:
         {
