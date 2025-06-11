@@ -17,12 +17,7 @@ gn_extr_hdrv (gn_conn_t * const conn)
     if (conn->recv_buf.dat[recv_buf_i] == '\n')
     {
         // Move the rest of the data to the beginning of the receive buffer.
-        recv_buf_i = 0;
-        gn_str_len_t i = conn->hdrv.len + 1;
-        while (i < conn->recv_buf.len) conn->recv_buf.dat[recv_buf_i++] = conn->recv_buf.dat[i++];
-
-        conn->recv_buf.len -= conn->hdrv.len + 1;
-        conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+        (void)! gn_str_lshift (&conn->recv_buf, conn->hdrv.len + 1);
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         if (conn->hdrv.len > 0)
@@ -44,7 +39,7 @@ gn_extr_hdrv (gn_conn_t * const conn)
              */
             // Find the last non-whitespace byte in the header value buffer.
             bool loop = true;
-            i = conn->hdrv.len - 1;
+            gn_str_len_t i = conn->hdrv.len - 1;
             while (i > 0 && loop)
             {
                 switch (conn->hdrv.dat[i])
@@ -84,12 +79,7 @@ gn_extr_hdrv (gn_conn_t * const conn)
 
             // Remove white spaces before the header value.
             // Move the data to the beginning of the header value buffer.
-            gn_str_len_t s = i;
-            gn_str_len_t d = 0;
-            while (s < conn->hdrv.len) conn->hdrv.dat[d++] = conn->hdrv.dat[s++];
-
-            conn->hdrv.len -= i;
-            conn->hdrv.dat[conn->hdrv.len] = '\0';
+            (void)! gn_str_lshift (&conn->hdrv, i);
 
             printf ("Header value (%u) \"%s\".\n", conn->hdrv.len, conn->hdrv.dat);
 

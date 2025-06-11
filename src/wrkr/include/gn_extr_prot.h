@@ -20,4 +20,10 @@ gn_htbl_insr (gn_htbl_t * const tbl,
               const char * const val,
               const gn_str_len_t val_len);
 
+__attribute__((nonnull))
+__attribute__((warn_unused_result))
+gn_str_err_e
+gn_str_lshift (gn_str_t * const str,
+               const gn_str_len_t num);
+
 #endif // GN_EXTR_PROT_H

@@ -17,12 +17,7 @@ gn_extr_uri (gn_conn_t * const conn)
     if (conn->recv_buf.dat[recv_buf_i] == ' ')
     {
         // Move the rest of the data to the beginning of the receive buffer.
-        recv_buf_i = 0;
-        gn_str_len_t i = conn->uri.len + 1;
-        while (i < conn->recv_buf.len) conn->recv_buf.dat[recv_buf_i++] = conn->recv_buf.dat[i++];
-
-        conn->recv_buf.len -= conn->uri.len + 1;
-        conn->recv_buf.dat[conn->recv_buf.len] = '\0';
+        (void)! gn_str_lshift (&conn->recv_buf, conn->uri.len + 1);
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         if (conn->uri.len == 0)

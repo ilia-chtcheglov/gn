@@ -14,6 +14,12 @@ void
 gn_open_file (gn_conn_t * const conn);
 
 __attribute__((nonnull))
+__attribute__((warn_unused_result))
+gn_str_err_e
+gn_str_lshift (gn_str_t * const str,
+               const gn_str_len_t num);
+
+__attribute__((nonnull))
 void
 gn_writ_hdrs (gn_conn_t * const conn);
 
@@ -124,16 +130,7 @@ gn_send_hdrs (gn_conn_t * const conn)
         {
             conn->last_io = time (NULL);
             // Move the rest of the data to the beginning of the send buffer.
-            uint32_t i = 0;
-            uint32_t j = (uint32_t)rsend;
-            while (j < conn->send_buf.len)
-            {
-                conn->send_buf.dat[i] = conn->send_buf.dat[j];
-                i++;
-                j++;
-            }
-            conn->send_buf.len -= (uint32_t)rsend;
-            conn->send_buf.dat[conn->send_buf.len] = '\0';
+            (void)! gn_str_lshift (&conn->send_buf, (gn_str_len_t)rsend);
             printf ("Remaining (%u) \"%s\"\n", conn->send_buf.len, conn->send_buf.dat); // TODO: Remove.
 
             if (conn->send_buf.len == 0)
