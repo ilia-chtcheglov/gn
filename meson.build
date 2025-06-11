@@ -29,6 +29,7 @@ comn_files = files(
     'src/comn/gn_str_deinit.c',
     'src/comn/gn_str_del.c',
     'src/comn/gn_str_init.c',
+    'src/comn/gn_str_lshift.c',
     'src/comn/gn_str_new.c'
 )
 
