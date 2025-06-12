@@ -85,14 +85,13 @@ gn_writ_hdrs (gn_conn_t * const conn)
 
 __attribute__((nonnull))
 void
-gn_send_hdrs (gn_conn_t * const conn);
+gn_send_data (gn_conn_t * const conn);
 
 __attribute__((nonnull))
 void
-gn_send_hdrs (gn_conn_t * const conn)
+gn_send_data (gn_conn_t * const conn)
 {
-    printf ("Sending headers (%u) \"%s\".\n", conn->send_buf.len, conn->send_buf.dat);
-
+    printf ("Sending (%u) \"%s\".\n", conn->send_buf.len, conn->send_buf.dat); // TODO: Remove.
     const ssize_t rsend = send (conn->sock, conn->send_buf.dat, conn->send_buf.len, 0);
     switch (rsend)
     {
@@ -131,9 +130,8 @@ gn_send_hdrs (gn_conn_t * const conn)
             conn->last_io = time (NULL);
             // Move the rest of the data to the beginning of the send buffer.
             (void)! gn_str_lshift (&conn->send_buf, (gn_str_len_t)rsend);
-            printf ("Remaining (%u) \"%s\"\n", conn->send_buf.len, conn->send_buf.dat); // TODO: Remove.
 
-            if (conn->send_buf.len == 0)
+            if (conn->step == GN_CONN_STEP_SEND_HDRS && conn->send_buf.len == 0)
             {
                 printf ("Response headers sent.\n");
                 switch (conn->status)
@@ -239,9 +237,9 @@ gn_send_file (gn_conn_t * const conn)
         }
         default:
         {
-            conn->send_buf.len += (uint32_t)rread;
+            conn->send_buf.len += (gn_str_len_t)rread;
             conn->send_buf.dat[conn->send_buf.len] = '\0';
-            gn_send_hdrs (conn);
+            gn_send_data (conn);
         }
     }
 }
@@ -371,7 +369,7 @@ gn_process_conn (gn_conn_t * const conn)
         }
         case GN_CONN_STEP_SEND_HDRS:
         {
-            gn_send_hdrs (conn);
+            gn_send_data (conn);
             break;
         }
         case GN_CONN_STEP_SEND_FILE:
