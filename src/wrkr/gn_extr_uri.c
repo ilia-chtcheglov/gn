@@ -17,7 +17,7 @@ gn_extr_uri (gn_conn_t * const conn)
     if (conn->recv_buf.dat[recv_buf_i] == ' ')
     {
         // Move the rest of the data to the beginning of the receive buffer.
-        (void)! gn_str_lshift (&conn->recv_buf, conn->uri.len + 1);
+        (void)! gn_str_lshift (&conn->recv_buf, recv_buf_i + 1);
 
         conn->prev_step = GN_CONN_STEP_INVALID;
         if (conn->uri.len == 0)
@@ -45,6 +45,9 @@ gn_extr_uri (gn_conn_t * const conn)
         conn->step = GN_CONN_STEP_WRIT_HDRS;
         return;
     }
+
+    conn->recv_buf.len = 0;
+    conn->recv_buf.dat[0] = '\0';
 
     conn->prev_step = GN_CONN_STEP_EXTR_URI;
     conn->step = GN_CONN_STEP_RECV_DATA;

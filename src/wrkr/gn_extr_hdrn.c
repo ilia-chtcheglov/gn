@@ -24,7 +24,7 @@ gn_extr_hdrn (gn_conn_t * const conn)
         case ':':
         {
             // Move the rest of the data to the beginning of the receive buffer.
-            (void)! gn_str_lshift (&conn->recv_buf, conn->hdrn.len + 1);
+            (void)! gn_str_lshift (&conn->recv_buf, recv_buf_i + 1);
 
             conn->prev_step = GN_CONN_STEP_INVALID;
             if (conn->hdrn.len == 0)
@@ -41,7 +41,7 @@ gn_extr_hdrn (gn_conn_t * const conn)
         case '\n':
         {
             // Move the rest of the data to the beginning of the receive buffer.
-            (void)! gn_str_lshift (&conn->recv_buf, conn->hdrn.len + 1);
+            (void)! gn_str_lshift (&conn->recv_buf, recv_buf_i + 1);
 
             // Remove CR from the end of the header name buffer.
             if (conn->hdrn.len > 0 && conn->hdrn.dat[conn->hdrn.len - 1] == '\r')
@@ -87,6 +87,9 @@ gn_extr_hdrn (gn_conn_t * const conn)
                 conn->step = GN_CONN_STEP_WRIT_HDRS;
                 return;
             }
+
+            conn->recv_buf.len = 0;
+            conn->recv_buf.dat[0] = '\0';
 
             conn->prev_step = GN_CONN_STEP_EXTR_HDRN;
             conn->step = GN_CONN_STEP_RECV_DATA;
