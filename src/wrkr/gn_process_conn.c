@@ -325,6 +325,7 @@ __attribute__((warn_unused_result))
 bool
 gn_process_conn (gn_conn_t * const conn)
 {
+    labl_reprocess_conn:
     switch (conn->step)
     {
         case GN_CONN_STEP_EXTR_MTHD:
@@ -354,6 +355,7 @@ gn_process_conn (gn_conn_t * const conn)
         case GN_CONN_STEP_EXTR_HDRV:
         {
             gn_extr_hdrv (conn);
+            if (conn->step == GN_CONN_STEP_EXTR_HDRN) goto labl_reprocess_conn;
             break;
         }
         case GN_CONN_STEP_OPEN_FILE:
