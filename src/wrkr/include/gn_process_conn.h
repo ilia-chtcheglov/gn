@@ -36,6 +36,26 @@ gn_extr_uri (gn_conn_t * const conn);
 
 __attribute__((nonnull))
 void
+gn_fcgi_conn (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_open_file (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
 gn_recv_data (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_send_data (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_send_file (gn_conn_t * const conn);
+
+__attribute__((nonnull))
+void
+gn_writ_hdrs (gn_conn_t * const conn);
 
 #endif // GN_PROCESS_CONN_H

@@ -71,6 +71,7 @@ wrkr_files = files(
     'src/wrkr/gn_extr_mthd.c',
     'src/wrkr/gn_extr_prot.c',
     'src/wrkr/gn_extr_uri.c',
+    'src/wrkr/gn_fcgi_conn.c',
     'src/wrkr/gn_free_conn.c',
     'src/wrkr/gn_get_new_conns.c',
     'src/wrkr/gn_ipc_conn.c',
@@ -79,10 +80,13 @@ wrkr_files = files(
     'src/wrkr/gn_recv_data.c',
     'src/wrkr/gn_recv_serv_sock.c',
     'src/wrkr/gn_recv_serv_socks.c',
+    'src/wrkr/gn_send_data.c',
+    'src/wrkr/gn_send_file.c',
     'src/wrkr/gn_start_conn_acpt_thrds.c',
     'src/wrkr/gn_start_conn_mgmt_thrds.c',
     'src/wrkr/gn_stop_conn_acpt_thrds.c',
     'src/wrkr/gn_stop_conn_mgmt_thrds.c',
+    'src/wrkr/gn_writ_hdrs.c',
     'src/wrkr/gn_wrkr_init.c',
     'src/wrkr/gn_wrkr_main.c'
 )
